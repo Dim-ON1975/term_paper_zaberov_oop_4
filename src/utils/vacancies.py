@@ -9,13 +9,13 @@ import requests
 from tqdm import trange
 import re
 
-from src.utils.constants import PATH_VAK_HH
+from src.utils.constants import PATH_VAK_HH, SUPERJOB_API_KEY, PATH_VAK_SJ
 
 
 class Vacancies(ABC):
     """
     Абстрактный класс выполнения и обработки запросов по api
-    для поиска вакансий.
+    для поиска, обработки, фильтрации и вывода вакансий.
     """
 
     @abstractmethod
@@ -42,6 +42,18 @@ class Vacancies(ABC):
     def three_levels(self, param_1: str, param_2: str) -> str:
         pass
 
+    @abstractmethod
+    def list_sort_salary(self, list_operations: list) -> list:
+        pass
+
+    @abstractmethod
+    def __doc__(self):
+        pass
+
+    @abstractmethod
+    def __repr__(self):
+        pass
+
 
 class VacHH(Vacancies):
     def __init__(self, position: str, area: int = 113, only_with_salary: bool = False, salary: int = 0,
@@ -49,7 +61,7 @@ class VacHH(Vacancies):
         self.__url = 'https://api.hh.ru/vacancies'
         self.position = str(position)  # Текст фильтра
         self.area = area  # Поиск по-умолчанию осуществляется по вакансиям России (id=113)
-        self.only_with_salary = only_with_salary  # Показывать вакансии только с указанием зарплаты
+        self.only_with_salary = only_with_salary  # Показывать вакансии только с указанием зарплаты или все
         self.salary = salary  # Ожидаемый размер заработной платы
         self.per_page = per_page  # Кол-во вакансий на 1 странице
         self.size_dict = 0  # Счётчик количества словарей с вакансиями
@@ -97,9 +109,10 @@ class VacHH(Vacancies):
         # Очищаем папку с файлами, хранящими устаревшие данные
         self.delete_files_in_folder(PATH_VAK_HH)
         try:
-            for page in trange(20, desc='Подождите, пожалуйста', initial=1):
+            for page in trange(20, desc='Подождите, пожалуйста. Анализируем страницы', initial=1):
                 # Преобразуем текст ответа запроса в словарь Python.
                 js_obj = json.loads(self.request_to_api(page))
+                # print(f'{js_obj}')
 
                 # Получем количество записей
                 self.size_dict += len(js_obj['items'])
@@ -416,6 +429,161 @@ class VacHH(Vacancies):
             except Exception as e:
                 print(f'Ошибка при удалении файла {file_path}. {e}')
 
+    def __str__(self) -> str:
+        return f'Получение, обработка (включая сортировку) и вывод данных с сервиса hh.ru по API {self.__url}'
+
+    def __repr__(self) -> str:
+        return (f"{self.__class__.__name__}('{self.__url}', {self.position}, {self.area}, "
+                f"{self.only_with_salary}, {self.salary}, {self.per_page}, {self.size_dict},{self.sort_method})")
+
 
 class VacSJ(Vacancies):
-    pass
+    def __init__(self, position: str, area: int = 1, per_page: int = 100) -> None:
+        # , only_with_salary: bool = False, salary: int = 0,
+        #          per_page: int = 100, sort_method: int = 2) :
+        self.__url = 'https://api.superjob.ru/2.0/vacancies/'
+        self.keyword = str(position)  # Текст фильтра
+        self.town = area  # Поиск по-умолчанию осуществляется по вакансиям России (id=1)
+        # self.only_with_salary = only_with_salary  # Показывать вакансии только с указанием зарплаты или все
+        # self.salary = salary  # Ожидаемый размер заработной платы
+        self.count = per_page  # Кол-во вакансий на 1 странице
+        self.size_dict = 0  # Счётчик количества словарей с вакансиями
+        # self.sort_method = sort_method  # Метод сортировки: 1 - по датам, 2 - по размеру зарплаты
+
+    def request_to_api(self, page: int = 0) -> str:
+        """
+        Получение запроса по api
+        :page: Индекс страницы поиска HH.
+        :return: ответ запроса, <class 'requests.models.Response'>.
+        """
+        try:
+            #     if self.salary != 0:
+            # С фильтрацией по размеру заработной платы
+            params = {
+                'keywords': self.keyword,  # Текст фильтра
+                'town': self.town,  # Поиск по-умолчанию осуществляется по вакансиям России (id=1)
+                'page': page,
+                'count': self.count,
+                # 'salary': self.salary,
+                # 'only_with_salary': self.only_with_salary,
+
+            }
+            # else:
+            #     # Без фильтрации по размеру заработной платы
+            #     params = {
+            #         'keyword': self.keyword,  # Текст фильтра
+            #         'town': self.town,  # Поиск по-умолчанию осуществляется по вакансиям России (id=1)
+            #         'page': page,
+            #         'only_with_salary': self.only_with_salary,
+            #         'per_page': self.per_page
+            #     }
+
+            # Посылаем запрос к API
+            headers = {'X-Api-App-Id': SUPERJOB_API_KEY}
+            data_prof = requests.get(url=self.__url, headers=headers, params=params).text
+            return data_prof
+        except Exception as e:
+            raise Exception(f'Ошибка при получении данных с {self.__url}. {e}')
+
+    def vacancies_all(self, page: int = 0) -> None:
+        """
+        Считывает первые 500 вакансий и постранично (по 100 шт.) сохраняет их в json-файлы.
+        """
+        print('Мы собираем для Вас информацию'
+              ' о вакансиях в указанном регионе/населённом пункте...')
+
+        try:
+            # Очищаем папку с файлами, хранящими устаревшие данные
+            self.delete_files_in_folder(PATH_VAK_SJ)
+            for page in trange(5, desc='Подождите, пожалуйста. Анализируем страницы', initial=1):
+                # Преобразуем текст ответа запроса в словарь Python.
+                js_obj = json.loads(self.request_to_api(page))
+
+                # Получем количество записей
+                self.size_dict += len(js_obj['objects'])
+
+                # Создаём номер файла для адекватной последовательной сортировки в дальнейшем
+                if page < 10:
+                    page_num = '0' + str(page)
+                else:
+                    page_num = str(page)
+                # Создаём новый документ, записываем в него ответ запроса
+                self.save_to_json(js_obj['objects'], os.path.join(PATH_VAK_SJ, f'vaksj_{page_num}.json'))
+
+                # Проверка на последнюю страницу, если вакансий меньше 500
+                if js_obj['total'] < self.count:
+                    break
+
+                # Задержка, чтобы не нагружать сервисы sj.
+                time.sleep(0.03)
+
+            # Вывод данных о количестве вакансий
+            if self.size_dict != 0:
+                print(f'\nПо вашему запросу на superjob.ru найдено {self.size_dict} вакансий.\n')
+            else:
+                print('\nИзвините. Мы ничего не нашли по Вашему запросу. Попробуйте его сформулировать по-другому.\n')
+                # Удаляем пустой файл из папки data\sj
+                self.delete_files_in_folder(PATH_VAK_SJ)
+        except KeyError as e:
+            raise KeyError(f'Ошибка обращения к полученным данным: отсутствует ключ "items". {e}')
+
+    def vacancies_print(self, count_vak) -> None:
+        pass
+
+    def data_print(self, data: list) -> None:
+        pass
+
+    def two_levels(self, param_1: str) -> str:
+        pass
+
+    def three_levels(self, param_1: str, param_2: str) -> str:
+        pass
+
+    def list_sort_salary(self, list_operations: list) -> list:
+        pass
+
+    @staticmethod
+    def save_to_json(data: dict, path: str) -> None:
+        """
+        Сохраняет данные в json-файл.
+        :param data: Словарь с данными, dict
+        :return: Ничего не возвращает.
+        """
+        with open(path, "w", encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+    @staticmethod
+    def load_json(path_json: str) -> list:
+        """
+        Чтение данных из файла json и возвращение структуры.
+        :param path_json: Путь к файлу, str.
+        :return: Структура файла (список словарей).
+        """
+        # открываем файл на чтение
+        with open(path_json, 'r', encoding='utf-8') as file:
+            # считываем список словарей из файла
+            content = json.load(file)
+        return content
+
+    @staticmethod
+    def delete_files_in_folder(folder_path):
+        """
+        Удаление файлов из папки.
+        :param folder_path: Путь к папке, str.
+        :return:
+        """
+        # Определяем полные имена файлов в директории
+        for filename in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, filename)
+            # Удаляем файл
+            try:
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+            except Exception as e:
+                print(f'Ошибка при удалении файла {file_path}. {e}')
+
+    def __str__(self) -> str:
+        return f'Получение, обработка (включая сортировку) и вывод данных с сервиса superjob.ru по API {self.__url}'
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.__url}, {self.keyword}, {self.town}, {self.count}"

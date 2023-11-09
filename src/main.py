@@ -1,6 +1,6 @@
-from src.utils.areas import AreasHH
+from src.utils.areas import AreasHH, AreasSJ
 from src.utils.utilites import user_name, exit_program
-from src.utils.vacancies import VacHH
+from src.utils.vacancies import VacHH, VacSJ
 
 if __name__ == '__main__':
 
@@ -8,6 +8,11 @@ if __name__ == '__main__':
     area_hh = AreasHH()
     # Получаем словарь с регионами и сохраняем его в json-файл.
     area_hh.request_to_api()
+
+    # Создаём экземпляр класса AreasSJ, по-умолчанию регион "Россия".
+    area_sj = AreasSJ()
+    # Получаем словарь с регионами и сохраняем его в json-файл.
+    area_sj.request_to_api()
 
     # Выводим информацию о работе программы.
     # Знакомимся с пользователем.
@@ -205,4 +210,58 @@ if __name__ == '__main__':
                         all_ok = True
     else:
         # Блок для работы с ресурсами SuperJob (superjob.ru).
-        pass
+        # Выбираем id региона/населённого пункта для получения данных о вакансиях на hh.ru
+        all_ok = False
+        while not all_ok:
+            # Регион, который указывает пользователь.
+            area_vak = input(
+                f'\nДля поиска вакансий введите, пожалуйста, название одного региона или города России\n'
+                f'без указания кратких обозначений "г.", "с.", "х." и т.д., например:\n'
+                f'Москва, Санкт-Петербург, Ростовская область, Ростов-на-Дону.\n'
+                f'Введите название региона/населённого пункта: ').strip().lower()
+
+            # Переопределяем экземпляр класса AreasHH с указанием региона, указанного пользователем.
+            area_sj = AreasSJ(area_vak)
+
+            # Получаем id региона/населённого пункта, который указал пользователь.
+            area_id = area_sj.extract_area_id()
+
+            # Если не нашли, указанный пользователем, регион/населённый пункт
+            if area_id == 1:
+                num_area = input(f'\nМы не нашли, указанный Вами регион/населённый пункт, в имеющейся базе.\n'
+                                 f'Можем показать вакансии, имеющиеся в России.\n'
+                                 f'Чтобы продолжить введите одну из следующих команд:\n'
+                                 f'   ✅ Выбрать другой регион/населённый пункт - 1\n'
+                                 f'   ✅ Показать вакансии в России............ - 2\n'
+                                 f'   ❌ Заверишь работу программы............. - 0\n\n'
+                                 f'Введите команду: ')
+
+                # Выбор разделов меню
+                all_ok_area = False
+                while not all_ok_area:
+                    try:
+                        match int(num_area):
+                            case 1:
+                                print(f'\n{name}, введите другой регион/населённый пункт.\n')
+                                all_ok_area = True
+                            case 2:
+                                print(f'\n{name}, мы подберём для Вас вакансии на территории России.\n')
+                                all_ok_area = True
+                                all_ok = True
+                            case 0:
+                                exit_program(name)  # Выход из приложения
+                    except ValueError:
+                        num_area = input(f'\n❗{name}, Вы ввели некорректную команду. Попробуйте ещё раз: ')
+            else:
+                all_ok = True
+
+        # Блок получения данных по запросу пользователя.
+        # Получаем название должности, которую ищет пользователь.
+        name_vak = input(
+            f'\n{name}, введите ключевое слово, по которому мы будем осуществлять поиск вакансий.\n'
+            f'Например: водитель, программист, python, java и т.д.\n\n'
+            f'Должность: ').lower()
+
+        prof_sj = VacSJ(position=name_vak, area=area_id)
+        prof_sj.vacancies_all()
+
