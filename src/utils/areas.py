@@ -2,7 +2,8 @@ import json
 import os
 from abc import ABC, abstractmethod
 import requests
-from src.utils.constants import PATH_ARE_HH, PATH_VAK_DIR_HH, PATH_VAK_DIR_SJ, SUPERJOB_API_KEY, PATH_ARE_SJ
+from src.utils.constants import PATH_ARE_HH, PATH_VAK_DIR_HH, PATH_VAK_DIR_SJ, SUPERJOB_API_KEY, PATH_ARE_SJ, \
+    ID_RUSSIA_SJ, ID_RUSSIA_HH
 
 
 class Areas(ABC):
@@ -76,7 +77,7 @@ class Mixin:
 class AreasHH(Areas, Mixin):
     def __init__(self, area: str = 'Россия') -> None:
         self.__url = 'https://api.hh.ru/areas/113'  # Поиск регионов в России
-        self.__id = 113  # По-умолчанию id = 113 - Россия
+        self.__id = ID_RUSSIA_HH  # По-умолчанию Россия
         self.__area = area.lower()
 
     def request_to_api(self) -> None:
@@ -119,7 +120,7 @@ class AreasHH(Areas, Mixin):
 class AreasSJ(Areas, Mixin):
     def __init__(self, area: str = 'Россия') -> None:
         self.__url = 'https://api.superjob.ru/2.0/regions/combined/'  # Поиск регионов в России
-        self.__id = 1  # По-умолчанию id = 1 - Россия
+        self.__id = ID_RUSSIA_SJ  # По-умолчанию Россия
         self.__area = area.lower()
 
     def request_to_api(self) -> None:
