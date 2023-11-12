@@ -291,6 +291,20 @@ class Mixin:
             result_string = value
         return result_string
 
+    @staticmethod
+    def coord_words_num(digit) -> str:
+        """
+            Согласование слова "вакансии" с числительными.
+            :param digit: Числительное для согласования, int.
+            :return: Слово "вакансии", согласованное с числительным, str.
+        """
+        if digit % 10 == 1 and digit != 11:
+            return f'{digit} вакансия'
+        elif digit % 10 in [2, 3, 4] and digit not in [12, 13, 14]:
+            return f'{digit} вакансии'
+        else:
+            return f'{digit} вакансий'
+
 
 class VacHH(Vacancies, Mixin):
     def __init__(self, position: str, area: int = ID_RUSSIA_HH, only_with_salary: bool = False, salary: int = 0,
@@ -364,7 +378,7 @@ class VacHH(Vacancies, Mixin):
 
             # Вывод данных о количестве вакансий
             if self.size_dict != 0:
-                print(f'\nПо вашему запросу на hh.ru найдено {self.size_dict} вакансий.\n')
+                print(f'\nПо вашему запросу на hh.ru найдено {self.coord_words_num(self.size_dict)} вакансий.\n')
             else:
                 print('\nИзвините. Мы ничего не нашли по Вашему запросу. Попробуйте его сформулировать по-другому.\n')
                 # Удаляем пустой файл из папки data\hh
@@ -581,7 +595,7 @@ class VacSJ(Vacancies, Mixin):
 
             # Вывод данных о количестве вакансий
             if self.size_dict != 0:
-                print(f'\nПо вашему запросу на superjob.ru найдено {self.size_dict} вакансий.\n')
+                print(f'\nПо вашему запросу на superjob.ru найдено {self.coord_words_num(self.size_dict)} вакансий.\n')
             else:
                 print('\nИзвините. Мы ничего не нашли по Вашему запросу. Попробуйте его сформулировать по-другому.\n')
                 # Удаляем пустой файл из папки data\sj
