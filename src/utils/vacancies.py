@@ -14,8 +14,8 @@ from src.utils.constants import PATH_VAK_HH, SUPERJOB_API_KEY, PATH_VAK_SJ, ID_R
 
 class Vacancies(ABC):
     """
-    Абстрактный класс выполнения и обработки запросов по api
-    для поиска, обработки, фильтрации и вывода вакансий.
+    Абстрактный класс выполнения запросов по API:
+    поиска, обработки, фильтрации и вывода вакансий.
     """
 
     @abstractmethod
@@ -52,6 +52,10 @@ class Vacancies(ABC):
 
 
 class Mixin:
+    """
+    Класс примеси содержит статические методы, позволяющие выполнять различные задачи наследникам.
+    """
+
     @staticmethod
     def one_level(dict_vak: dict, vacancy: dict, key_0: str, key_1: str) -> None:
         """
@@ -107,6 +111,24 @@ class Mixin:
             pass
 
     @staticmethod
+    def one_level_salary(dict_vak: dict, key_1: str, from_to: str) -> str:
+        """
+        Проверка и обработка данных по зарплате из исходного словаря.
+        Один уровень вложенности ключей в словаре.
+        :param dict_vak: Словарь вакансии (анализируемый), dict.
+        :param key_1: Ключ 1-го уровня вложенности анализируемого словаря, str.
+        :param from_to: Строки 'от' или 'до', str.
+        :return: Выводит данные о зарплате в виде строки, str.
+        """
+        str_salary = ''
+        try:
+            if dict_vak.get(key_1) != 0:
+                str_salary = f'{from_to} {str(dict_vak[key_1])}'
+        except (TypeError, AttributeError):
+            pass
+        return str_salary
+
+    @staticmethod
     def two_levels_salary(dict_vak: dict, key_1: str, key_2: str, from_to: str) -> str:
         """
         Проверка и обработка данных по зарплате из исходного словаря.
@@ -122,24 +144,6 @@ class Mixin:
             if all(str(dict_vak.get(key_1).get(key_2))):
                 if str(dict_vak.get(key_1).get(key_2)) != 'None':
                     str_salary = f'{from_to} {str(dict_vak[key_1][key_2])}'
-        except (TypeError, AttributeError):
-            pass
-        return str_salary
-
-    @staticmethod
-    def one_level_salary(dict_vak: dict, key_1: str, from_to: str) -> str:
-        """
-        Проверка и обработка данных по зарплате из исходного словаря.
-        Один уровень вложенности ключей в словаре.
-        :param dict_vak: Словарь вакансии (анализируемый), dict.
-        :param key_1: Ключ 1-го уровня вложенности анализируемого словаря, str.
-        :param from_to: Строки 'от' или 'до', str.
-        :return: Выводит данные о зарплате в виде строки, str.
-        """
-        str_salary = ''
-        try:
-            if dict_vak.get(key_1) != 0:
-                str_salary = f'{from_to} {str(dict_vak[key_1])}'
         except (TypeError, AttributeError):
             pass
         return str_salary
@@ -196,10 +200,10 @@ class Mixin:
         return list_operations
 
     @staticmethod
-    def key_sort_salary(my_dict: dict):
+    def key_sort_salary_hh(my_dict: dict):
         """
-        Условия сортировки для метода сортировки list_sort_salary.
-        :param my_dict: Словарь из списка словарей, dict.
+        Условия сортировки для метода list_sort_salary.
+        :param my_dict: Словарь из списка, dict.
         :return: Ключ для сортировки.
         """
         if my_dict['salary']['from'] is not None:
@@ -208,10 +212,23 @@ class Mixin:
             return my_dict['salary']['to']
 
     @staticmethod
+    def key_sort_salary_sj(my_dict: dict):
+        """
+        Условия сортировки для метода list_sort_salary.
+        :param my_dict: Словарь из списка, dict.
+        :return: Ключ для сортировки.
+        """
+        if my_dict['payment_from'] is not None:
+            return my_dict['payment_from']
+        else:
+            return my_dict['payment_from']
+
+    @staticmethod
     def save_to_json(data: dict, path: str) -> None:
         """
         Сохраняет данные в json-файл.
-        :param data: Словарь с данными, dict
+        :param path: Полное имя файла, str.
+        :param data: Словарь с данными, dict.
         :return: Ничего не возвращает.
         """
         with open(path, "w", encoding='utf-8') as f:
@@ -250,11 +267,11 @@ class Mixin:
     @staticmethod
     def break_down_lines(value: str, len_cut: int = 100, count_space: int = 15) -> str:
         """
-        Разбивает длинные строки на несколько строк при помощи \n.
+        Разбивает длинные строки на несколько при помощи \n.
         :param value: Длинная строка без переносов, str.
         :param len_cut: Примерное количество символов для разбивки строки, int.
         :param count_space: Количество пробелов (отступ) слева, int.
-        :return: Строка, разделённая на несколько строк, str.
+        :return: Строка, разделённая на несколько, str.
         """
         # Итоговая строка
         result_string = ""
@@ -310,15 +327,15 @@ class VacHH(Vacancies, Mixin):
     def __init__(self, position: str, area: int = ID_RUSSIA_HH, only_with_salary: bool = False, salary: int = 0,
                  per_page: int = 100, sort_method: int = 2) -> None:
         self.__url = 'https://api.hh.ru/vacancies'
-        self.position = str(position)  # Текст фильтра
-        self.area = area  # Поиск по-умолчанию осуществляется по вакансиям России (id=113)
-        self.only_with_salary = only_with_salary  # Показывать вакансии только с указанием зарплаты или все
-        self.salary = salary  # Ожидаемый размер заработной платы
-        self.per_page = per_page  # Кол-во вакансий на 1 странице
+        self.__position = str(position)  # Текст фильтра
+        self.__area = area  # Поиск по-умолчанию осуществляется по вакансиям России (id=113)
+        self.__only_with_salary = only_with_salary  # Показывать вакансии только с указанием зарплаты или все
+        self.__salary = salary  # Ожидаемый размер заработной платы
+        self.__per_page = per_page  # Кол-во вакансий на 1 странице
         self.size_dict = 0  # Счётчик количества словарей с вакансиями
-        self.sort_method = sort_method  # Метод сортировки: 1 - по датам, 2 - по размеру зарплаты
+        self.__sort_method = sort_method  # Метод сортировки: 1 - по датам, 2 - по размеру зарплаты
         # Объявляем словарь, определяем структуру данных для отображения пользователю
-        self.vacancy = VACANCY
+        self.__vacancy = VACANCY
 
     def request_to_api(self, page: int = 0) -> str:
         """
@@ -329,15 +346,15 @@ class VacHH(Vacancies, Mixin):
         try:
             # Без фильтрации по размеру заработной платы
             params = {
-                'text': self.position,
-                'area': self.area,
+                'text': self.__position,
+                'area': self.__area,
                 'page': page,
-                'per_page': self.per_page
+                'per_page': self.__per_page
             }
-            if self.salary != 0:
+            if self.__salary != 0:
                 # С фильтрацией по размеру заработной платы
-                params['salary'] = self.salary
-                params['only_with_salary'] = self.only_with_salary
+                params['salary'] = self.__salary
+                params['only_with_salary'] = self.__only_with_salary
 
             # Отправляем запрос к API
             data_prof = requests.get(url=self.__url, params=params).text
@@ -404,7 +421,7 @@ class VacHH(Vacancies, Mixin):
             except Exception as e:
                 print(f'Ошибка при открытии и/или чтении файла {file_path}. {e}')
         # Сортируем список по датам или зарплате, выводя, заданное пользователем, количество словарей.
-        if self.sort_method == 1:
+        if self.__sort_method == 1:
             data = self.list_sort_salary(data)[:count_vak]
         else:
             data = self.list_sort_date(data)[:count_vak]
@@ -454,7 +471,7 @@ class VacHH(Vacancies, Mixin):
             # Заполняем словарь vacancy по ключам 01-03, 05-09,
             # имеющим "двойной" уровень вложенности.
             for key_0, key in keys.items():
-                self.two_levels(dict_vak, self.vacancy, key_0, key[0], key[1])
+                self.two_levels(dict_vak, self.__vacancy, key_0, key[0], key[1])
 
             # Зарплата.
             # Получаем данные о зарплате (от и до)
@@ -462,11 +479,11 @@ class VacHH(Vacancies, Mixin):
             sal_to = self.two_levels_salary(dict_vak, "salary", "to", 'до')
             # Помещаем данные в словарь, удаляя лишние пробелы
             if sal_from != '' or sal_to != '':
-                self.vacancy['04 Зарплата'] = self.del_space(
+                self.__vacancy['04 Зарплата'] = self.del_space(
                     f'{str(sal_from)} {str(sal_to)} ({dict_vak["salary"]["currency"]}).')
 
             # URL вакансии
-            self.one_level(dict_vak, self.vacancy, '10 Подробнее здесь (URL)', "alternate_url")
+            self.one_level(dict_vak, self.__vacancy, '10 Подробнее здесь (URL)', "alternate_url")
 
             # Выводим словарь на экран
             self.print_display()
@@ -486,7 +503,7 @@ class VacHH(Vacancies, Mixin):
         :return: Вывод информации на экран.
         """
         # Выводим словарь на экран, удаляя номера у ключей, лишние символы и выполняя переносы длинных строк.
-        for key, value in sorted(self.vacancy.items()):
+        for key, value in sorted(self.__vacancy.items()):
             if key == "08 Требования к соискателю":
                 string_print = self.break_down_lines(self.del_html_tag(self.del_space(value)), 130, 27)
                 print(f"  {key[3:]}: {string_print}")
@@ -506,31 +523,31 @@ class VacHH(Vacancies, Mixin):
         :return: Сортированный список словарей, list.
         """
         # Сортируем словари в списке по зарплате в обратном порядке.
-        list_operations = sorted(list_operations, key=self.key_sort_salary, reverse=True)
+        list_operations = sorted(list_operations, key=self.key_sort_salary_hh, reverse=True)
         return list_operations
 
     def __str__(self) -> str:
         return f'Получение, обработка (включая сортировку) и вывод данных с сервиса hh.ru по API {self.__url}'
 
     def __repr__(self) -> str:
-        return (f"{self.__class__.__name__}('{self.__url}', {self.position},"
-                f"{self.area}, {self.only_with_salary}, {self.salary}, "
-                f"{self.per_page}, {self.size_dict}, {self.sort_method})")
+        return (f"{self.__class__.__name__}({self.__url}, {self.__position},"
+                f"{self.__area}, {self.__only_with_salary}, {self.__salary}, "
+                f"{self.__per_page}, {self.size_dict}, {self.__sort_method})")
 
 
 class VacSJ(Vacancies, Mixin):
     def __init__(self, position: str, area: int = ID_RUSSIA_SJ, only_with_salary: bool = False, salary: int = 0,
                  per_page: int = 100, sort_method: int = 2) -> None:
         self.__url = 'https://api.superjob.ru/2.0/vacancies/'
-        self.keyword = str(position)  # Текст фильтра
-        self.area = area  # Поиск по-умолчанию осуществляется по вакансиям России (id=1)
-        self.only_with_salary = only_with_salary  # Показывать вакансии только с указанием зарплаты или все
-        self.salary = salary  # Ожидаемый размер заработной платы
-        self.per_page = per_page  # Кол-во вакансий на 1 странице
+        self.__keyword = str(position)  # Текст фильтра
+        self.__area = area  # Поиск по-умолчанию осуществляется по вакансиям России (id=1)
+        self.__only_with_salary = only_with_salary  # Показывать вакансии только с указанием зарплаты или все
+        self.__salary = salary  # Ожидаемый размер заработной платы
+        self.__per_page = per_page  # Кол-во вакансий на 1 странице
         self.size_dict = 0  # Счётчик количества словарей с вакансиями
-        self.sort_method = sort_method  # Метод сортировки: 1 - по датам, 2 - по размеру зарплаты
+        self.__sort_method = sort_method  # Метод сортировки: 1 - по датам, 2 - по размеру зарплаты
         # Объявляем словарь, определяем структуру данных для отображения пользователю
-        self.vacancy = VACANCY
+        self.__vacancy = VACANCY
 
     def request_to_api(self, page: int = 0) -> str:
         """
@@ -541,19 +558,19 @@ class VacSJ(Vacancies, Mixin):
         try:
             # Без фильтрации по зарплате, поиск по конкретному городу/региону России.
             params = {
-                'keyword': self.keyword,
-                'town': self.area,
+                'keyword': self.__keyword,
+                'town': self.__area,
                 'page': page,
-                'count': self.per_page,
+                'count': self.__per_page,
             }
             # Поиск по России
-            if self.area == 1:
+            if self.__area == 1:
                 params['c'] = params.pop('town')
             # С фильтрацией по размеру заработной платы
-            if self.salary != 0:
-                params['payment_from'] = self.salary
-                params['payment_to'] = self.salary * 5
-                params['no_agreement'] = self.only_with_salary
+            if self.__salary != 0:
+                params['payment_from'] = self.__salary
+                params['payment_to'] = self.__salary * 5
+                params['no_agreement'] = self.__only_with_salary
 
             # Посылаем запрос к API
             headers = {'X-Api-App-Id': SUPERJOB_API_KEY}
@@ -587,7 +604,7 @@ class VacSJ(Vacancies, Mixin):
                 self.save_to_json(js_obj['objects'], os.path.join(PATH_VAK_SJ, f'vaksj_{page_num}.json'))
 
                 # Проверка на последнюю страницу, если вакансий меньше 500
-                if js_obj['total'] < self.per_page:
+                if js_obj['total'] < self.__per_page:
                     break
 
                 # Задержка, чтобы не нагружать сервисы sj.
@@ -595,7 +612,8 @@ class VacSJ(Vacancies, Mixin):
 
             # Вывод данных о количестве вакансий
             if self.size_dict != 0:
-                print(f'\nПо вашему запросу на superjob.ru найдено {self.coord_words_num(self.size_dict)} вакансий.\n')
+                print(
+                    f'\nПо вашему запросу на superjob.ru найдено {self.coord_words_num(self.size_dict)} вакансий.\n')
             else:
                 print('\nИзвините. Мы ничего не нашли по Вашему запросу. Попробуйте его сформулировать по-другому.\n')
                 # Удаляем пустой файл из папки data\sj
@@ -621,7 +639,7 @@ class VacSJ(Vacancies, Mixin):
             except Exception as e:
                 print(f'Ошибка при открытии и/или чтении файла {file_path}. {e}')
         # Сортируем список по датам или зарплате, выводя, заданное пользователем, количество словарей.
-        if self.sort_method == 1:
+        if self.__sort_method == 1:
             data = self.list_sort_salary(data)[:count_vak]
         else:
             data = self.list_sort_date_unix(data)[:count_vak]
@@ -670,22 +688,18 @@ class VacSJ(Vacancies, Mixin):
                 '07 Опыт работы': ["experience", "title"],
                 '08 Требования к соискателю': ["education", "title"],
             }
-            # Ключи с однотипным ('тройным') уровнем вложенности.
-            keys_3 = {
-                '02 Населённый пункт': ["client", "town", "title"],
-            }
 
             # Заполняем словарь vacancy
             # по ключам 03, 09, 10, имеющим "одинарный" уровень вложенности.
             for key_0, key in keys_1.items():
-                self.one_level(dict_vak, self.vacancy, key_0, key[0])
+                self.one_level(dict_vak, self.__vacancy, key_0, key[0])
 
             # по ключам 01, 05-08, имеющим "двойной" уровень вложенности.
             for key_0, key in keys_2.items():
-                self.two_levels(dict_vak, self.vacancy, key_0, key[0], key[1])
+                self.two_levels(dict_vak, self.__vacancy, key_0, key[0], key[1])
 
             # по ключу 02, имеющему тройной уровень вложенности
-            self.three_levels(dict_vak, self.vacancy, '02 Населённый пункт', "client", "town", "title")
+            self.three_levels(dict_vak, self.__vacancy, '02 Населённый пункт', "client", "town", "title")
 
             # Зарплата.
             # Получаем данные о зарплате (от и до)
@@ -693,7 +707,7 @@ class VacSJ(Vacancies, Mixin):
             sal_to = self.one_level_salary(dict_vak, "payment_to", 'до')
             # Помещаем данные в словарь, удаляя лишние пробелы
             if sal_from != '' or sal_to != '':
-                self.vacancy['04 Зарплата'] = self.del_space(
+                self.__vacancy['04 Зарплата'] = self.del_space(
                     f'{str(sal_from)} {str(sal_to)} ({dict_vak["currency"]}).')
 
             # Выводим словарь на экран
@@ -714,7 +728,7 @@ class VacSJ(Vacancies, Mixin):
         :return: Вывод информации на экран.
         """
         # Выводим словарь на экран, удаляя номера у ключей, лишние символы и выполняя переносы длинных строк.
-        for key, value in sorted(self.vacancy.items()):
+        for key, value in sorted(self.__vacancy.items()):
             if key == "08 Требования к соискателю":
                 string_print = self.break_down_lines(self.del_html_tag(self.del_space(value)), 130, 27)
                 print(f"  {key[3:]}: {string_print}")
@@ -734,13 +748,13 @@ class VacSJ(Vacancies, Mixin):
         :return: Сортированный список словарей, list.
         """
         # Сортируем словари в списке по зарплате в обратном порядке.
-        list_operations = sorted(list_operations, key=self.key_sort_salary, reverse=True)
+        list_operations = sorted(list_operations, key=self.key_sort_salary_sj, reverse=True)
         return list_operations
 
     def __str__(self) -> str:
         return f'Получение, обработка (включая сортировку) и вывод данных с сервиса superjob.ru по API {self.__url}'
 
     def __repr__(self) -> str:
-        return (f"{self.__class__.__name__}({self.__url}, {self.keyword}, "
-                f"{self.area}, {self.only_with_salary}, {self.salary}, "
-                f"{self.per_page}, {self.size_dict}, {self.sort_method}")
+        return (f"{self.__class__.__name__}({self.__url}, {self.__keyword}, "
+                f"{self.__area}, {self.__only_with_salary}, {self.__salary}, "
+                f"{self.__per_page}, {self.size_dict}, {self.__sort_method}")

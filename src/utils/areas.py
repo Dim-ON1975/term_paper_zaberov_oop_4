@@ -7,8 +7,8 @@ from src.utils.constants import PATH_ARE_HH, PATH_VAK_DIR_HH, PATH_VAK_DIR_SJ, S
 
 class Areas(ABC):
     """
-    Абстрактный класс выполнения и обработки запросов по api
-    для поиска регионов.
+    Абстрактный класс получения справочника по API
+    для поиска регионов/населённых пунктов России.
     """
 
     @abstractmethod
@@ -19,13 +19,65 @@ class Areas(ABC):
     def extract_area_id(self):
         pass
 
+    @abstractmethod
+    def __str__(self):
+        pass
+
+    @abstractmethod
+    def __repr__(self):
+        pass
 
 
-class AreasHH(Areas):
+class Mixin:
+    @staticmethod
+    def save_to_json(data: dict, path: str) -> None:
+        """
+        Сохраняет данные в json-файл.
+        :param path: Полное имя файла, str.
+        :param data: Словарь с данными, dict.
+        :return: Ничего не возвращает.
+        """
+
+        with open(path, "w", encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+    @staticmethod
+    def load_json(path_json: str) -> list:
+        """
+        Чтение данных из файла json и возвращение структуры,
+        содержащейся в нём.
+        :param path_json: Путь к файлу, str.
+        :return: Структура файла (список словарей).
+        """
+        # открываем файл на чтение
+        with open(path_json, 'r', encoding='utf-8') as file:
+            # считываем список словарей из файла
+            content = json.load(file)
+        return content
+
+    @staticmethod
+    def delete_files_in_folder(folder_path):
+        """
+        Удаление файлов из папки.
+        :param folder_path: Путь к папке, str.
+        :return:
+        """
+        # Определяем полные имена файлов в директории.
+        for filename in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, filename)
+            # Удаляем файл
+            try:
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+            except Exception as e:
+                print(f'Ошибка при удалении файла {file_path}. {e}')
+
+
+class AreasHH(Areas, Mixin):
     def __init__(self, area: str = 'Россия') -> None:
         self.__url = 'https://api.hh.ru/areas/113'  # Поиск регионов в России
-        self.id = 113  # По-умолчанию id = 113 - Россия
-        self.area = area.lower()
+        self.__id = 113  # По-умолчанию id = 113 - Россия
+        self.__area = area.lower()
 
     def request_to_api(self) -> None:
         """
@@ -45,67 +97,30 @@ class AreasHH(Areas):
     def extract_area_id(self):
         """Получение id региона (города)"""
         areas = self.load_json(PATH_ARE_HH)
-        # areas = areas['areas']
         # Ищем id указанного региона/населённого пункта.
         for area in areas['areas']:
             # Регион
-            if str(area['name']).lower() == self.area:
-                self.id = int(area['id'])
+            if str(area['name']).lower() == self.__area:
+                self.__id = int(area['id'])
             else:
                 # Населённый пункт
                 for city in area['areas']:
-                    if city['name'].lower() == self.area:
-                        self.id = int(city['id'])
-        return self.id
+                    if city['name'].lower() == self.__area:
+                        self.__id = int(city['id'])
+        return self.__id
 
-    @staticmethod
-    def save_to_json(data: dict, path: str) -> None:
-        """
-        Сохраняет данные в json-файл.
-        :param data: Словарь с данными, dict
-        :return: Ничего не возвращает.
-        """
+    def __str__(self) -> str:
+        return f'Получение справочника регионов/городов России с сервиса hh.ru по API {self.__url}'
 
-        with open(path, "w", encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-
-    @staticmethod
-    def load_json(path_json: str) -> list:
-        """
-        Чтение данных из файла json и возвращение структуры,
-        содержащейся в файле.
-        :param path_json: Путь к файлу, str
-        :return: Структура файла (список, словарь, список словарей...)
-        """
-        # открываем файл на чтение
-        with open(path_json, 'r', encoding='utf-8') as file:
-            # считываем список словарей из файла
-            content = json.load(file)
-        return content
-
-    @staticmethod
-    def delete_files_in_folder(folder_path):
-        """
-        Удаление файлов из папки.
-        :param folder_path: Путь к папке, str.
-        :return:
-        """
-        # Определяем полные имена файлов в директории (путь + имя файла)
-        for filename in os.listdir(folder_path):
-            file_path = os.path.join(folder_path, filename)
-            # Удаляем файл
-            try:
-                if os.path.isfile(file_path):
-                    os.remove(file_path)
-            except Exception as e:
-                print(f'Ошибка при удалении файла {file_path}. {e}')
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.__url}, {self.__id}, {self.__area})"
 
 
-class AreasSJ(Areas):
+class AreasSJ(Areas, Mixin):
     def __init__(self, area: str = 'Россия') -> None:
         self.__url = 'https://api.superjob.ru/2.0/regions/combined/'  # Поиск регионов в России
-        self.id = 1  # По-умолчанию id = 1 - Россия
-        self.area = area.lower()
+        self.__id = 1  # По-умолчанию id = 1 - Россия
+        self.__area = area.lower()
 
     def request_to_api(self) -> None:
         """
@@ -131,59 +146,23 @@ class AreasSJ(Areas):
         # Ищем id указанного региона/населённого пункта.
         # Города федерального значения
         for area in areas['towns']:
-            if str(area['title']).lower() == self.area:
-                self.id = int(area['id'])
+            if str(area['title']).lower() == self.__area:
+                self.__id = int(area['id'])
 
         # Остальные регионы и города России
         for area in areas['regions']:
             # Регион
-            if str(area['title']).lower() == self.area:
-                self.id = int(area['id'])
+            if str(area['title']).lower() == self.__area:
+                self.__id = int(area['id'])
             else:
                 # Населённый пункт
                 for city in area['towns']:
-                    if city['title'].lower() == self.area:
-                        self.id = int(city['id'])
-        return self.id
+                    if city['title'].lower() == self.__area:
+                        self.__id = int(city['id'])
+        return self.__id
 
-    @staticmethod
-    def save_to_json(data: dict, path: str) -> None:
-        """
-        Сохраняет данные в json-файл.
-        :param data: Словарь с данными, dict
-        :return: Ничего не возвращает.
-        """
+    def __str__(self) -> str:
+        return f'Получение справочника регионов/городов России с сервиса superjob.ru по API {self.__url}'
 
-        with open(path, "w", encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-
-    @staticmethod
-    def load_json(path_json: str) -> list:
-        """
-        Чтение данных из файла json и возвращение структуры,
-        содержащейся в файле.
-        :param path_json: Путь к файлу, str
-        :return: Структура файла (список, словарь, список словарей...)
-        """
-        # открываем файл на чтение
-        with open(path_json, 'r', encoding='utf-8') as file:
-            # считываем список словарей из файла
-            content = json.load(file)
-        return content
-
-    @staticmethod
-    def delete_files_in_folder(folder_path):
-        """
-        Удаление файлов из папки.
-        :param folder_path: Путь к папке, str.
-        :return:
-        """
-        # Определяем полные имена файлов в директории (путь + имя файла)
-        for filename in os.listdir(folder_path):
-            file_path = os.path.join(folder_path, filename)
-            # Удаляем файл
-            try:
-                if os.path.isfile(file_path):
-                    os.remove(file_path)
-            except Exception as e:
-                print(f'Ошибка при удалении файла {file_path}. {e}')
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.__url}, {self.__id}, {self.__area})"
