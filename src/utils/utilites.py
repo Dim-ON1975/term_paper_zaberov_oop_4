@@ -1,6 +1,6 @@
 # Функции для модуля main.py
 from src.utils.areas import AreasHH, AreasSJ
-from src.utils.vacancies import VacHH, VacSJ
+from src.utils.vacancies import VacHH, VacSJ, VacPrint
 
 
 def loading_regions_hh():
@@ -286,10 +286,11 @@ def displaying_jobs_screen(service: str, name: str, name_vak: str, area_id: int,
             if service == 'hh':
                 # Создаём экземпляр класса VacHH - вакансии с hh.ru.
                 if only_with_salary or salary != 0:
-                    prof_hh = VacHH(position=name_vak, area=area_id, only_with_salary=only_with_salary, salary=salary,
-                                    sort_method=sort_method)
+                    prof_hh = VacHH(position=name_vak, area=area_id, only_with_salary=only_with_salary, salary=salary)
+                    prof_print = VacPrint(sort_method=sort_method)
                 else:
                     prof_hh = VacHH(position=name_vak, area=area_id)
+                    prof_print = VacPrint()
 
                 # Получаем все вакансии в соответствии с запросом пользователя,
                 # сохраняя их в json-файлы.
@@ -302,10 +303,11 @@ def displaying_jobs_screen(service: str, name: str, name_vak: str, area_id: int,
             elif service == 'sj':
                 # Создаём экземпляр класса VacHH - вакансии с hh.ru.
                 if only_with_salary or salary != 0:
-                    prof_sj = VacSJ(position=name_vak, area=area_id, only_with_salary=only_with_salary, salary=salary,
-                                    sort_method=sort_method)
+                    prof_sj = VacSJ(position=name_vak, area=area_id, only_with_salary=only_with_salary, salary=salary)
+                    prof_print = VacPrint(sort_method=sort_method)
                 else:
                     prof_sj = VacSJ(position=name_vak, area=area_id)
+                    prof_print = VacPrint()
 
                 # Получаем все вакансии в соответствии с запросом пользователя,
                 # сохраняя их в json-файлы.
@@ -354,14 +356,9 @@ def displaying_jobs_screen(service: str, name: str, name_vak: str, area_id: int,
                       f'поэтому мы покажем Вам все найденные вакансии ({count_vak} шт.).\n')
 
                 # Выводим информацию
-                # Если выбран HeadHunter
-                if service == 'hh':
-                    prof_hh.vacancies_print(count_vak)
-                    all_ok = True
-                # Если выбран SuperJob
-                elif service == 'sj':
-                    prof_sj.vacancies_print(count_vak)
-                    all_ok = True
+                prof_print.vacancies_print(count_vak, service)
+                all_ok = True
+
             else:
                 # Количество вакансий, заданное пользователем, для вывода.
                 count_vak = int(count_vak)
@@ -369,11 +366,6 @@ def displaying_jobs_screen(service: str, name: str, name_vak: str, area_id: int,
                       f'которые мы нашли по Вашему запросу ({count_vak} шт.).\n')
 
                 # Выводим информацию
-                # Если выбран HeadHunter
-                if service == 'hh':
-                    prof_hh.vacancies_print(count_vak)
-                    all_ok = True
-                # Если выбран SuperJob
-                elif service == 'sj':
-                    prof_sj.vacancies_print(count_vak)
-                    all_ok = True
+                prof_print.vacancies_print(count_vak, service)
+                all_ok = True
+
