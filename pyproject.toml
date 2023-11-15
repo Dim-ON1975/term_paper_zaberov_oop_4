@@ -11,6 +11,8 @@ requests = "^2.31.0"
 tqdm = "^4.66.1"
 setuptools = "^68.2.2"
 python-dotenv = "^1.0.0"
+keyboard = "^0.13.5"
+pytest = "^7.4.3"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -1,40 +1,41 @@
 # Функции для модуля main.py
 from src.utils.areas import AreasHH, AreasSJ
+from src.utils.constants import PATH_VAK_DIR_HH, PATH_ARE_HH, PATH_VAK_DIR_SJ, PATH_ARE_SJ
 from src.utils.vacancies import VacHH, VacSJ, VacPrint
 
 
-def loading_regions_hh():
+def loading_regions_hh(path_vak_dir_hh: str = PATH_VAK_DIR_HH, path_are_hh: str = PATH_ARE_HH):
     """
     Загружает перечни регионов и городов с сервиса hh.ru.
+    :param path_vak_dir_hh: Путь к директории для хранения файла, str.
+    :param path_are_hh: Полное имя файла, str.
     :return: Json-файл с регионами/населёнными пунктами.
     """
     # Создаём экземпляр класса AreasHH, по-умолчанию регион "Россия".
-    area_hh = AreasHH()
+    area_hh = AreasHH(path_vak_dir_hh=path_vak_dir_hh, path_are_hh=path_are_hh)
     # Получаем словарь с регионами и сохраняем его в json-файл.
     area_hh.request_to_api()
 
 
-def loading_regions_sj() -> None:
+def loading_regions_sj(path_vak_dir_sj: str = PATH_VAK_DIR_SJ, path_are_sj: str = PATH_ARE_SJ) -> None:
     """
     Загружает перечни регионов и городов с сервиса superjob.ru.
+    :param path_vak_dir_sj: Путь к директории для хранения файла, str.
+    :param path_are_sj: Полное имя файла, str.
     :return: Json-файл с регионами/населёнными пунктами.
     """
     # Создаём экземпляр класса AreasSJ, по-умолчанию регион "Россия".
-    area_sj = AreasSJ()
+    area_sj = AreasSJ(path_vak_dir_sj=path_vak_dir_sj, path_are_sj=path_are_sj)
     # Получаем словарь с регионами и сохраняем его в json-файл.
     area_sj.request_to_api()
 
 
-def user_name() -> str:
+def user_name(name) -> str:
     """
-    Информация о программе.
-    Выводит приветствие для пользователя.
+     Выводит приветствие для пользователя.
+    :param name: Переданное значение имени пользователя, str.
     :return: Вывод обращения к пользователю, его имени, str.
     """
-    name = input('\nЗдравствуйте! Наша программа поможет Вам изучить имеющиеся вакансии,\n'
-                 'предлагаемые работодателями на территории Российской Федерации,\n'
-                 'размещённые на сервисах HeadHunter (hh.ru) и SuperJob (superjob.ru).\n\n'
-                 'Как Вас зовут? ').strip()
     # Вывод обращения к пользователю.
     match name:
         # Если name == ""
@@ -368,4 +369,3 @@ def displaying_jobs_screen(service: str, name: str, name_vak: str, area_id: int,
                 # Выводим информацию
                 prof_print.vacancies_print(count_vak, service)
                 all_ok = True
-

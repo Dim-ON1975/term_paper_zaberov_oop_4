@@ -8,6 +8,7 @@ from datetime import datetime
 import requests
 from tqdm import trange
 import re
+import keyboard
 
 from src.utils.constants import PATH_VAK_HH, SUPERJOB_API_KEY, PATH_VAK_SJ, ID_RUSSIA_HH, ID_RUSSIA_SJ
 
@@ -613,6 +614,7 @@ class VacPrint(Mixin):
             # Поочерёдный вывод вакансий и завершение работы программы
             i = input("\n ✅ Нажмите [Enter], чтобы продолжить\n"
                       " ❌ Введите 'q', чтобы выйти из программы: ").strip().lower()
+            print()
             if not i:
                 continue
             elif i == 'q':

@@ -75,10 +75,15 @@ class Mixin:
 
 
 class AreasHH(Areas, Mixin):
-    def __init__(self, area: str = 'Россия') -> None:
+    def __init__(self, area: str = 'Россия', path_vak_dir_hh: str = PATH_VAK_DIR_HH,
+                 path_are_hh: str = PATH_ARE_HH) -> None:
         self.__url = 'https://api.hh.ru/areas/113'  # Поиск регионов в России
         self.__id = ID_RUSSIA_HH  # По-умолчанию Россия
         self.__area = area.lower()
+        # Путь к папке, в которой хранятся данные о регионах в России, полученных с HH.ru.
+        self.__path_vak_dir_hh = path_vak_dir_hh
+        # Путь к файлу, в котором хранятся данные о регионах в России, полученных с HH.ru.
+        self.__path_are_hh = path_are_hh
 
     def request_to_api(self) -> None:
         """
@@ -86,18 +91,18 @@ class AreasHH(Areas, Mixin):
         :return: Сохраняет данные о регионах в json-файл.
         """
         # Удаляем старый файл с данными о регионах areas.json
-        self.delete_files_in_folder(PATH_VAK_DIR_HH)
+        self.delete_files_in_folder(self.__path_vak_dir_hh)
         try:
             # Посылаем запрос к API, преобразуем его в словарь
             data_prof = json.loads(requests.get(url=self.__url).text)
             # Сохраняем данные в json-файл
-            self.save_to_json(data_prof, PATH_ARE_HH)
+            self.save_to_json(data_prof, self.__path_are_hh)
         except Exception as e:
             raise Exception(f'Ошибка при получении данных с {self.__url}. {e}')
 
     def extract_area_id(self):
         """Получение id региона (города)"""
-        areas = self.load_json(PATH_ARE_HH)
+        areas = self.load_json(self.__path_are_hh)
         # Ищем id указанного региона/населённого пункта.
         for area in areas['areas']:
             # Регион
@@ -114,14 +119,20 @@ class AreasHH(Areas, Mixin):
         return f'Получение справочника регионов/городов России с сервиса hh.ru по API {self.__url}'
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.__url}, {self.__id}, {self.__area})"
+        return (f"{self.__class__.__name__}({self.__url}, {self.__id}, "
+                f"{self.__area}, {self.__path_vak_dir_hh}, {self.__path_are_hh})")
 
 
 class AreasSJ(Areas, Mixin):
-    def __init__(self, area: str = 'Россия') -> None:
+    def __init__(self, area: str = 'Россия', path_vak_dir_sj: str = PATH_VAK_DIR_SJ,
+                 path_are_sj: str = PATH_ARE_SJ) -> None:
         self.__url = 'https://api.superjob.ru/2.0/regions/combined/'  # Поиск регионов в России
         self.__id = ID_RUSSIA_SJ  # По-умолчанию Россия
         self.__area = area.lower()
+        # Путь к папке, в которой хранятся данные о регионах в России, полученных с superjob.ru.
+        self.__path_vak_dir_sj = path_vak_dir_sj
+        # Путь к файлу, в котором хранятся данные о регионах в России, полученных с superjob.ru.
+        self.__path_are_sj = path_are_sj
 
     def request_to_api(self) -> None:
         """
@@ -129,20 +140,20 @@ class AreasSJ(Areas, Mixin):
         :return: Сохраняет данные о регионах в json-файл.
         """
         # Удаляем старый файл с данными о регионах areas.json
-        self.delete_files_in_folder(PATH_VAK_DIR_SJ)
+        self.delete_files_in_folder(self.__path_vak_dir_sj)
         try:
             # Посылаем запрос к API, преобразуем его в словарь
             headers = {'X-Api-App-Id': SUPERJOB_API_KEY}
             data_prof = json.loads(requests.get(url=self.__url, headers=headers).text)
             # data_prof = json.loads(requests.get(url=self.__url).text)
             # Сохраняем данные в json-файл только регионы и города России
-            self.save_to_json(data_prof[0], PATH_ARE_SJ)
+            self.save_to_json(data_prof[0], self.__path_are_sj)
         except Exception as e:
             raise Exception(f'Ошибка при получении данных с {self.__url}. {e}')
 
     def extract_area_id(self):
         """Получение id региона (города)"""
-        areas = self.load_json(PATH_ARE_SJ)
+        areas = self.load_json(self.__path_are_sj)
 
         # Ищем id указанного региона/населённого пункта.
         # Города федерального значения
@@ -166,4 +177,5 @@ class AreasSJ(Areas, Mixin):
         return f'Получение справочника регионов/городов России с сервиса superjob.ru по API {self.__url}'
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.__url}, {self.__id}, {self.__area})"
+        return (f"{self.__class__.__name__}({self.__url}, {self.__id}, "
+                f"{self.__area}, {self.__path_vak_dir_sj}, {self.__path_are_sj})")

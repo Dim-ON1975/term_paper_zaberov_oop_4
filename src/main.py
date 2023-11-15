@@ -1,4 +1,4 @@
-from src.utils.constants import ID_RUSSIA_HH, ID_RUSSIA_SJ
+from src.utils.constants import ID_RUSSIA_HH, ID_RUSSIA_SJ, PATH_VAK_DIR_HH, PATH_ARE_HH, PATH_VAK_DIR_SJ, PATH_ARE_SJ
 from src.utils.utilites import user_name, loading_regions_hh, loading_regions_sj, service_selection, \
     choosing_region, name_vak_word, show_only_with_salary, looking_salary, choose_sort_method, displaying_jobs_screen
 
@@ -9,7 +9,11 @@ if __name__ == '__main__':
     loading_regions_sj()  # superjob.ru.
 
     # Выводим информацию о работе программы, знакомство с пользователем.
-    name = user_name()
+    name = input('\nЗдравствуйте! Наша программа поможет Вам изучить имеющиеся вакансии,\n'
+                 'предлагаемые работодателями на территории Российской Федерации,\n'
+                 'размещённые на сервисах HeadHunter (hh.ru) и SuperJob (superjob.ru).\n\n'
+                 'Как Вас зовут? ').strip()
+    name = user_name(name)
 
     # Выбираем сервис для получения данных или завершаем работу программы.
     num_vak = service_selection(name)
