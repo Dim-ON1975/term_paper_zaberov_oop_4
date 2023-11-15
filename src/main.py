@@ -1,5 +1,5 @@
 from src.utils.constants import ID_RUSSIA_HH, ID_RUSSIA_SJ, PATH_VAK_DIR_HH, PATH_ARE_HH, PATH_VAK_DIR_SJ, PATH_ARE_SJ
-from src.utils.utilites import user_name, loading_regions_hh, loading_regions_sj, service_selection, \
+from src.utils.utilities import user_name, loading_regions_hh, loading_regions_sj, service_selection, \
     choosing_region, name_vak_word, show_only_with_salary, looking_salary, choose_sort_method, displaying_jobs_screen
 
 if __name__ == '__main__':

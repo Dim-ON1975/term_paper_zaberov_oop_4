@@ -8,7 +8,6 @@ from datetime import datetime
 import requests
 from tqdm import trange
 import re
-import keyboard
 
 from src.utils.constants import PATH_VAK_HH, SUPERJOB_API_KEY, PATH_VAK_SJ, ID_RUSSIA_HH, ID_RUSSIA_SJ
 

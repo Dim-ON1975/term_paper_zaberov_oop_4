@@ -1,9 +1,9 @@
-# Тестирование модуля utilites.py
+# Тестирование модуля utilities.py
 import os
 
 import pytest
 
-from src.utils.utilites import loading_regions_hh, loading_regions_sj, user_name, exit_program
+from src.utils.utilities import loading_regions_hh, loading_regions_sj, user_name, exit_program
 
 
 def test_loading_regions_hh():
