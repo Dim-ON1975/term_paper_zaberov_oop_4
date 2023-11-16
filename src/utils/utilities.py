@@ -57,18 +57,14 @@ def exit_program(name) -> None:
     raise SystemExit('Работа программы завершена.\n')
 
 
-def service_selection(name: str) -> int:
+def service_selection(name: str, num_vak: str) -> int:
     """
     Выбираем сервис для получения и вывода данных.
     :param name: Имя пользователя, str.
+    :param num_vak: Номер сервиса из меню, введённый пользователем, str.
     :return: Возвращает номер выбранного сервиса (int) или выходит из программы.
     """
-    num_vak = input(f'\nВыберите сервис, с которого хотите получить информацию.\n'
-                    f'Для этого введите:\n'
-                    f'   ✅ HeadHunter (hh.ru)........ - 1\n'
-                    f'   ✅ SuperJob (superjob.ru).... - 2\n'
-                    f'   ❌ Завершить работу программы - 0.\n\n'
-                    f'Введите команду: ')
+
     all_ok = False
     while not all_ok:
         try:

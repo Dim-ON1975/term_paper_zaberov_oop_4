@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from src.utils.utilities import loading_regions_hh, loading_regions_sj, user_name, exit_program
+from src.utils.utilities import loading_regions_hh, loading_regions_sj, user_name, exit_program, service_selection
 
 
 def test_loading_regions_hh():
@@ -86,3 +86,58 @@ def test_exit_program(name, capsys):
         assert out == f'\nДо свидания, {name}! 👋'
         assert err == ''
     assert "Работа программы завершена." in str(exif.value)
+
+
+@pytest.mark.parametrize("name, num_vak, result", [
+    ('Василий', '1', 1),
+    ('Василий', '2', 2),
+    ('Василий', '0', "Работа программы завершена."),
+])
+def test_service_selection_1(name, num_vak, result, capsys, monkeypatch):
+    """
+    Тестирование функции выбора номера сервиса для вывода вакансий.
+    Пользователь вводит: 1, 2 или 0.
+    """
+    if num_vak == '1' or num_vak == '2':
+        num_vak = service_selection(name, num_vak)
+        assert num_vak == result
+    elif num_vak == '0':
+        with pytest.raises(SystemExit) as exif:
+            service_selection(name, num_vak)
+            out, err = capsys.readouterr()
+            assert out == f'\nДо свидания, {name}! 👋'
+            assert err == ''
+        assert result in str(exif.value)
+    else:
+        with pytest.raises(ValueError) as exif:
+            # inputs
+            user_inputs = iter(['1', '2', '0'])
+            # expected
+            prompt_expected = "\n❗{name}, Вы ввели некорректную команду. Попробуйте ещё раз: \n" + \
+                              "\n❗{name}, Вы ввели некорректную команду. Попробуйте ещё раз: \n" + \
+                              "\n❗{name}, Вы ввели некорректную команду. Попробуйте ещё раз: "
+            # Monkey patching
+            monkeypatch.setattr('builtins.input', lambda _: next(user_inputs))
+            service_selection(name, num_vak)
+            out, err = capsys.readouterr()
+            print(f'out: {out}')
+        assert out == prompt_expected
+
+
+def test_service_selection_2(capsys, monkeypatch):
+    """
+    Тестирование функции выбора номера сервиса для вывода вакансий.
+    Пользователь вводит некорректные данные.
+    """
+
+    # inputs
+    user_inputs = iter(['е', '5', 'x'])
+    # expected
+    prompt_expected = ""
+    # Monkey patching
+    monkeypatch.setattr('builtins.input', lambda _: next(user_inputs))
+    service_selection('Василий', next(user_inputs))
+    out, err = capsys.readouterr()
+    print(f'out: {out}')
+    print(f'err: {err}')
+    assert out == prompt_expected

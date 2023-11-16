@@ -16,7 +16,13 @@ if __name__ == '__main__':
     name = user_name(name)
 
     # Выбираем сервис для получения данных или завершаем работу программы.
-    num_vak = service_selection(name)
+    num_vak = input(f'\nВыберите сервис, с которого хотите получить информацию.\n'
+                    f'Для этого введите:\n'
+                    f'   ✅ HeadHunter (hh.ru)........ - 1\n'
+                    f'   ✅ SuperJob (superjob.ru).... - 2\n'
+                    f'   ❌ Завершить работу программы - 0.\n\n'
+                    f'Введите команду: ')
+    num_vak = service_selection(name, num_vak)
 
     # Блок для работы с ресурсами HeadHunter (hh.ru).
     if num_vak == 1:
