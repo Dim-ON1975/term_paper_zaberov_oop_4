@@ -3,7 +3,7 @@ import os
 from abc import ABC, abstractmethod
 import requests
 from src.utils.constants import PATH_ARE_HH, PATH_VAK_DIR_HH, PATH_VAK_DIR_SJ, SUPERJOB_API_KEY, PATH_ARE_SJ, \
-    ID_RUSSIA_SJ, ID_RUSSIA_HH
+    ID_RUSSIA_SJ, ID_RUSSIA_HH, URL_AREAS_HH, URL_AREAS_SJ
 
 
 class Areas(ABC):
@@ -75,9 +75,9 @@ class Mixin:
 
 
 class AreasHH(Areas, Mixin):
-    def __init__(self, area: str = 'Россия', path_vak_dir_hh: str = PATH_VAK_DIR_HH,
+    def __init__(self, url: str = URL_AREAS_HH, area: str = 'Россия', path_vak_dir_hh: str = PATH_VAK_DIR_HH,
                  path_are_hh: str = PATH_ARE_HH) -> None:
-        self.__url = 'https://api.hh.ru/areas/113'  # Поиск регионов в России
+        self.__url = url  # Поиск регионов в России
         self.__id = ID_RUSSIA_HH  # По-умолчанию Россия
         self.__area = area.lower()
         # Путь к папке, в которой хранятся данные о регионах в России, полученных с HH.ru.
@@ -124,9 +124,9 @@ class AreasHH(Areas, Mixin):
 
 
 class AreasSJ(Areas, Mixin):
-    def __init__(self, area: str = 'Россия', path_vak_dir_sj: str = PATH_VAK_DIR_SJ,
+    def __init__(self, url: str = URL_AREAS_SJ, area: str = 'Россия', path_vak_dir_sj: str = PATH_VAK_DIR_SJ,
                  path_are_sj: str = PATH_ARE_SJ) -> None:
-        self.__url = 'https://api.superjob.ru/2.0/regions/combined/'  # Поиск регионов в России
+        self.__url = url  # Поиск регионов в России
         self.__id = ID_RUSSIA_SJ  # По-умолчанию Россия
         self.__area = area.lower()
         # Путь к папке, в которой хранятся данные о регионах в России, полученных с superjob.ru.

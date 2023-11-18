@@ -1,31 +1,34 @@
 # Функции для модуля main.py
 from src.utils.areas import AreasHH, AreasSJ
-from src.utils.constants import PATH_VAK_DIR_HH, PATH_ARE_HH, PATH_VAK_DIR_SJ, PATH_ARE_SJ
+from src.utils.constants import PATH_VAK_DIR_HH, PATH_ARE_HH, PATH_VAK_DIR_SJ, PATH_ARE_SJ, URL_AREAS_HH, URL_AREAS_SJ
 from src.utils.vacancies import VacHH, VacSJ, VacPrint
 
 
-def loading_regions_hh(path_vak_dir_hh: str = PATH_VAK_DIR_HH, path_are_hh: str = PATH_ARE_HH):
+def loading_regions_hh(url: str = URL_AREAS_HH, path_vak_dir_hh: str = PATH_VAK_DIR_HH, path_are_hh: str = PATH_ARE_HH):
     """
     Загружает перечни регионов и городов с сервиса hh.ru.
+    :param url: URL регионов, str.
     :param path_vak_dir_hh: Путь к директории для хранения файла, str.
     :param path_are_hh: Полное имя файла, str.
     :return: Json-файл с регионами/населёнными пунктами.
     """
     # Создаём экземпляр класса AreasHH, по-умолчанию регион "Россия".
-    area_hh = AreasHH(path_vak_dir_hh=path_vak_dir_hh, path_are_hh=path_are_hh)
+    area_hh = AreasHH(url=url, path_vak_dir_hh=path_vak_dir_hh, path_are_hh=path_are_hh)
     # Получаем словарь с регионами и сохраняем его в json-файл.
     area_hh.request_to_api()
 
 
-def loading_regions_sj(path_vak_dir_sj: str = PATH_VAK_DIR_SJ, path_are_sj: str = PATH_ARE_SJ) -> None:
+def loading_regions_sj(url: str = URL_AREAS_SJ, path_vak_dir_sj: str = PATH_VAK_DIR_SJ,
+                       path_are_sj: str = PATH_ARE_SJ) -> None:
     """
     Загружает перечни регионов и городов с сервиса superjob.ru.
+    :param url: URL регионов, str.
     :param path_vak_dir_sj: Путь к директории для хранения файла, str.
     :param path_are_sj: Полное имя файла, str.
     :return: Json-файл с регионами/населёнными пунктами.
     """
     # Создаём экземпляр класса AreasSJ, по-умолчанию регион "Россия".
-    area_sj = AreasSJ(path_vak_dir_sj=path_vak_dir_sj, path_are_sj=path_are_sj)
+    area_sj = AreasSJ(url=url, path_vak_dir_sj=path_vak_dir_sj, path_are_sj=path_are_sj)
     # Получаем словарь с регионами и сохраняем его в json-файл.
     area_sj.request_to_api()
 
@@ -79,10 +82,19 @@ def service_selection(name: str, num_vak: str) -> int:
                 case 0:
                     exit_program(name)  # Выход из приложения
         except ValueError:
-            num_vak = input(f'\n❗{name}, Вы ввели некорректную команду. Попробуйте ещё раз: ')
+            num_vak = error_input(f'\n❗{name}, Вы ввели некорректную команду. Попробуйте ещё раз: ')
         else:
             # Возвращение номера выбранного сервиса
             return int(num_vak)
+
+
+def error_input(value: str) -> str:
+    """
+    Ввод данных при возникновении ошибки
+    :param value: Сообщение для пользователя, str.
+    :return:
+    """
+    return input(value)
 
 
 def choosing_region(service: str, name: str, area_id_country: int) -> int:
@@ -103,58 +115,88 @@ def choosing_region(service: str, name: str, area_id_country: int) -> int:
             f'Введите название региона/населённого пункта: ').strip().lower()
 
         # Ищем id на указанном сервисе
-        try:
-            # Если выбран HeadHunter
-            if service == 'hh':
-                # Переопределяем экземпляр класса AreasHH с указанием региона, указанного пользователем.
-                area_hh = AreasHH(area=area_vak)
-                # Получаем id региона/населённого пункта, который указал пользователь.
-                area_id = area_hh.extract_area_id()
-            # Если выбран SuperJob
-            elif service == 'sj':
-                # Переопределяем экземпляр класса AreasSJ с указанием региона, указанного пользователем.
-                area_sj = AreasSJ(area=area_vak)
-                # Получаем id региона/населённого пункта, который указал пользователь.
-                area_id = area_sj.extract_area_id()
-            # Если указано что-то другое
-            else:
-                print('Программа не ищет данные на указанном сервисе.')
-                exit_program(name)
-        except ValueError:
-            raise ValueError('Некорректные данные о сервисе.')
+        area_id = search_area_id(area_vak, service, name)
 
         # Если не нашли, указанный пользователем, регион/населённый пункт
         if area_id == area_id_country:
-            num_area = input(f'\nМы не нашли, указанный Вами регион/населённый пункт, в имеющейся базе.\n'
-                             f'Можем показать вакансии, имеющиеся в России.\n'
-                             f'Чтобы продолжить введите одну из следующих команд:\n'
-                             f'   ✅ Выбрать другой регион/населённый пункт - 1\n'
-                             f'   ✅ Показать вакансии в России............ - 2\n'
-                             f'   ❌ Заверишь работу программы............. - 0\n\n'
-                             f'Введите команду: ')
-
             # Выбор разделов меню
             all_ok_area = False
             while not all_ok_area:
-                try:
-                    match int(num_area):
-                        # Вывод сообщения, прерывание цикла
-                        case 1:
-                            print(f'\n{name}, введите другой регион/населённый пункт.\n')
-                            all_ok_area = True
-                        # Вывод сообщения, прерывание циклов
-                        case 2:
-                            print(f'\n{name}, мы подберём для Вас вакансии на территории России.\n')
-                            all_ok_area = True
-                            all_ok = True
-                        # Завершение работы программы
-                        case 0:
-                            exit_program(name)  # Выход из приложения
-                except ValueError:
-                    num_area = input(f'\n❗{name}, Вы ввели некорректную команду. Попробуйте ещё раз: ')
+                # Вывод меню
+                num_area = num_area_word()
+                # Работаем с пунктами меню
+                all_ok_area, all_ok = selection_menu_sections_id(num_area, name)
         else:
             all_ok = True
     return area_id
+
+
+def num_area_word() -> str:
+    """
+    Меню выбора при поиске id
+    :return: Результат ввода пользователем, str
+    """
+    return input(f'\nМы не нашли, указанный Вами регион/населённый пункт, в имеющейся базе.\n'
+                 f'Можем показать вакансии, имеющиеся в России.\n'
+                 f'Чтобы продолжить введите одну из следующих команд:\n'
+                 f'   ✅ Выбрать другой регион/населённый пункт - 1\n'
+                 f'   ✅ Показать вакансии в России............ - 2\n'
+                 f'   ❌ Заверишь работу программы............. - 0\n\n'
+                 f'Введите команду: ')
+
+
+def search_area_id(area_vak: str, service: str, name: str) -> int:
+    """
+    Поиск id региона/населённого пункта на указанном сервисе.
+    :param area_vak: Наименование региона/населённого пункта, str.
+    :param service: Строка, указывающая на выбор сервиса: "hh" - HeadHunter, "sj" - SuperJob, str.
+    :param name: Имя пользователя, str.
+    :return: Возвращает id, если регион/населённый пункт не найден, то id России, int.
+    """
+    try:
+        # Если выбран HeadHunter
+        if service == 'hh':
+            # Переопределяем экземпляр класса AreasHH с указанием региона, указанного пользователем.
+            area_hh = AreasHH(area=area_vak)
+            # Получаем id региона/населённого пункта, который указал пользователь.
+            return area_hh.extract_area_id()
+        # Если выбран SuperJob
+        elif service == 'sj':
+            # Переопределяем экземпляр класса AreasSJ с указанием региона, указанного пользователем.
+            area_sj = AreasSJ(area=area_vak)
+            # Получаем id региона/населённого пункта, который указал пользователь.
+            return area_sj.extract_area_id()
+        # Если указано что-то другое
+        else:
+            print('Программа не ищет данные на указанном сервисе.')
+            exit_program(name)
+    except ValueError:
+        raise ValueError('Некорректные данные о сервисе.')
+
+
+def selection_menu_sections_id(num_area: str, name: str) -> tuple:
+    """
+    Выбор пунктов меню для поиска id региона/населённого пункта.
+    :param num_area: Номер пункта меню, str.
+    :param name: Имя пользователя, str.
+    :return: Флаги в кортеже для работы с циклом while, tuple(bool, bool).
+    """
+    try:
+        match int(num_area):
+            # Вывод сообщения, прерывание цикла
+            case 1:
+                print(f'\n{name}, введите другой регион/населённый пункт.\n')
+                return True, False
+            # Вывод сообщения, прерывание циклов
+            case 2:
+                print(f'\n{name}, мы подберём для Вас вакансии на территории России.\n')
+                return True, True
+            # Завершение работы программы
+            case 0:
+                exit_program(name)  # Выход из приложения
+    except ValueError:
+        print('Введена некорректная команда.\n')
+        return False, False
 
 
 def name_vak_word(name: str) -> str:
@@ -163,10 +205,9 @@ def name_vak_word(name: str) -> str:
     :param name: Имя пользователя, str.
     :return: Возвращает ключевое слово для поиска вакансии, str.
     """
-    name_vak = input(f'\n{name}, введите ключевое слово, по которому мы будем осуществлять поиск вакансий.\n'
-                     f'Например: водитель, программист, python, java и т.д.\n\n'
-                     f'Должность: ').lower()
-    return name_vak
+    return input(f'\n{name}, введите ключевое слово, по которому мы будем осуществлять поиск вакансий.\n'
+                 f'Например: водитель, программист, python, java и т.д.\n\n'
+                 f'Должность: ').lower()
 
 
 def show_only_with_salary(name: str) -> bool:
@@ -176,31 +217,50 @@ def show_only_with_salary(name: str) -> bool:
     :return: Флаг с зарплатой (True) или все (False), bool.
     """
     only_with_salary = False  # Показывать только с зарплатой
-    salary_vak = input('\nВыберите одну из команд:\n'
-                       '   ✅ Показать вакансии только с указанием зарплаты - 1\n'
-                       '   ✅ Показать все имеющиеся вакансии.............. - 2\n'
-                       '   ❌ Завершить работу программы................... - 0\n\n'
-                       'Введите команду: ')
     all_ok = False
     while not all_ok:
+        # Варианты вакансий (с зарплатой или без неё)
+        salary_vak = salary_vak_input()
         # Обработка команд
-        try:
-            match int(salary_vak):
-                # Запрос данных с api только с зарплатой.
-                case 1:
-                    print(f'\nOK, {name}.\n')
-                    only_with_salary = True
-                    all_ok = True
-                # Запрос данных с api любых вакансий, в т.ч. без зарплаты.
-                case 2:
-                    print(f'\nOK, {name}.\n')
-                    all_ok = True
-                # Завершение работы программы.
-                case 0:
-                    exit_program(name)  # Выход из приложения
-        except ValueError:
-            salary_vak = input(f'\n❗{name}, Вы ввели некорректную команду. Попробуйте ещё раз: ')
+        only_with_salary, all_ok = all_ok_salary(salary_vak, name)
     return only_with_salary
+
+
+def salary_vak_input() -> str:
+    """
+    Функция выбора пункта меню для выбора отображения вакансий всех или только с зарплатой.
+    :return: Ввод пользователя, str.
+    """
+    return input('\nВыберите одну из команд:\n'
+                 '   ✅ Показать вакансии только с указанием зарплаты - 1\n'
+                 '   ✅ Показать все имеющиеся вакансии.............. - 2\n'
+                 '   ❌ Завершить работу программы................... - 0\n\n'
+                 'Введите команду: ')
+
+
+def all_ok_salary(salary_vak: str, name: str) -> tuple:
+    """
+    Выбор пунктов меню для отображений вакансий только с зарплатой или всех имеющихся.
+    :param salary_vak: Варианты вакансий (с зарплатой или без неё), str.
+    :param name: Имя пользователя, str.
+    :return: Кортеж, содержащий флаги с зарплатой / без зарплаты и завершить/возобновить итерацию, tuple(bool,bool)
+    """
+    try:
+        match int(salary_vak):
+            # Запрос данных с api только с зарплатой.
+            case 1:
+                print(f'\nOK, {name}.\n')
+                return True, True
+            # Запрос данных с api любых вакансий, в т.ч. без зарплаты.
+            case 2:
+                print(f'\nOK, {name}.\n')
+                return False, True
+            # Завершение работы программы.
+            case 0:
+                exit_program(name)  # Выход из приложения
+    except ValueError:
+        print('Введена некорректная команда.\n')
+        return False, False
 
 
 def looking_salary(only_with_salary: bool, name: str) -> int:
@@ -212,19 +272,39 @@ def looking_salary(only_with_salary: bool, name: str) -> int:
     """
     salary = 0  # Размер искомой зарплаты
     if only_with_salary:
-        salary = input('\nУкажите ожидаемый размер заработной платы (в рублях): ')
         all_ok = False
         while not all_ok:
+            # Ожидаемый размер заработной платы
+            salary = salary_input()
             # Обработка ввода
-            try:
-                # Размер ожидаемой зарплаты.
-                salary = int(salary)
-                if salary <= 0:
-                    salary = 0
-                all_ok = True
-            except ValueError:
-                salary = input(f'\n❗{name}, нужно ввести целое положительное число: ')
+            salary, all_ok = all_ok_salary_input(salary)
     return salary
+
+
+def salary_input() -> str:
+    """
+    Ввод размера заработной платы.
+    :return: Ожидаемый размер зарплаты, str.
+    """
+    return input('\nУкажите ожидаемый размер заработной платы (в рублях): ')
+
+
+def all_ok_salary_input(salary: str) -> tuple:
+    """
+    Обработка введённого значения ожидаемой зарплаты.
+    :param salary: Размер ожидаемой зарплаты, str.
+    :return: Размер ожидаемой зарплаты и флаг завершения/продолжения работы цикла.
+    """
+    try:
+        # Размер ожидаемой зарплаты.
+        salary = int(salary)
+        if salary <= 0:
+            print(f'Ошибка ввода данных. Введите целое положительное число.')
+            return 0, False
+        return salary, True
+    except ValueError:
+        print(f'Ошибка ввода данных. Введите целое положительное число.')
+        return 0, False
 
 
 def choose_sort_method(only_with_salary: bool, name: str) -> int:
