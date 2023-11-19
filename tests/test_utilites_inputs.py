@@ -4,7 +4,7 @@ from typing import Callable
 import pytest
 
 from src.utils.utilities import num_area_input, name_vak_word, salary_vak_input, error_input, \
-    salary_input, area_vak_input, sort_method_input
+    salary_input, area_vak_input, sort_method_input, program_info, service_menu_selection, reselect_position
 
 
 def _create_patched_input(str_list: list[str]) -> Callable:
@@ -38,6 +38,32 @@ def _mock_input(monkeypatch, inputs: list[str]) -> None:
 
 
 # Объявляем использование фикстуры.
+
+@pytest.mark.usefixtures("_mock_input")
+@pytest.mark.parametrize(
+    "inputs",
+    (["Вася", "Петя"], ["Маша", ""]),
+)
+def test_program_info(inputs):
+    """
+    Тестирование функции program_info.
+    """
+    for name in inputs:
+        assert program_info() == name
+
+
+@pytest.mark.usefixtures("_mock_input")
+@pytest.mark.parametrize(
+    "inputs",
+    (["1", "2"], ["0", "error"]),
+)
+def test_menu_selection(inputs):
+    """
+    Тестирование функции service_menu_selection.
+    """
+    for name in inputs:
+        assert service_menu_selection() == name
+
 
 @pytest.mark.usefixtures("_mock_input")
 @pytest.mark.parametrize(
@@ -103,7 +129,7 @@ def test_name_vak_word(inputs):
 def test_salary_vak_input(inputs):
     """
     Тестирование функции выбора пункта меню
-    для выбора отображения вакансий всех или только с зарплатой.
+    для отображения вакансий всех или только с зарплатой.
     """
     for name in inputs:
         assert salary_vak_input() == name
@@ -133,3 +159,16 @@ def test_sort_method_input(inputs):
     """
     for name in inputs:
         assert sort_method_input() == name
+
+
+@pytest.mark.usefixtures("_mock_input")
+@pytest.mark.parametrize(
+    "inputs",
+    (["1", "2"], ["0", "error"]),
+)
+def test_reselect_position(inputs):
+    """
+    Тестирование функции reselect_position.
+    """
+    for name in inputs:
+        assert reselect_position() == name

@@ -4,7 +4,9 @@ import os
 import pytest
 
 from src.utils.utilities import loading_regions_hh, loading_regions_sj, user_name, exit_program, service_selection, \
-    search_area_id, selection_menu_sections_id, all_ok_salary, all_ok_salary_input, sort_method_int, get_job_info
+    search_area_id, selection_menu_sections_id, all_ok_salary, all_ok_salary_input, sort_method_int, get_job_info, \
+    print_vacancies
+from src.utils.vacancies import VacPrint
 
 
 def test_loading_regions_hh():
@@ -291,7 +293,7 @@ def test_sort_method_int(sort_method, name, result, capsys):
     ('sj', 'Василий', 'водитель', 4, True, 50000, 1, (500, 'Вывод данных о вакансиях на экран.')),
     ('sj', 'Василий', 'водитель', 4, False, 0, 2, (500, 'Вывод данных о вакансиях на экран.')),
 ])
-def test_get_job_info(service, name, name_vak, area_id, only_with_salary, salary, sort_method, result, capsys):
+def test_get_job_info(service, name, name_vak, area_id, only_with_salary, salary, sort_method, result):
     """
     Тестирование функции получения информации о вакансиях при помощи классов VakHH и VakSJ.
     """
@@ -300,4 +302,20 @@ def test_get_job_info(service, name, name_vak, area_id, only_with_salary, salary
     assert 0 < size_dict_vak <= result[0]
     assert str(prof_print) == result[1]
 
+
+@pytest.mark.parametrize("service, count_vak, size_dict_vak, one_each, result", [
+    ('hh', '5', 6, 2, True),
+    ('hh', '30', 6, 2, True),
+    ('sj', '5', 6, 2, True),
+    ('sj', '30', 6, 2, True),
+])
+def test_print_vacancies(service, count_vak, size_dict_vak, one_each, result, capsys):
+    """
+    Тестирование функции получения информации о вакансиях при помощи классов VakHH и VakSJ.
+    """
+    # Создаём экземпляр класса VacPrint
+    prof_print = VacPrint()
+
+    all_ok = print_vacancies(service, count_vak, size_dict_vak, prof_print, one_each)
+    assert all_ok is True
 
