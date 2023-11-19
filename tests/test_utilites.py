@@ -3,10 +3,11 @@ import os
 
 import pytest
 
+from src.utils.areas import AreasHH, AreasSJ
 from src.utils.utilities import loading_regions_hh, loading_regions_sj, user_name, exit_program, service_selection, \
     search_area_id, selection_menu_sections_id, all_ok_salary, all_ok_salary_input, sort_method_int, get_job_info, \
     print_vacancies
-from src.utils.vacancies import VacPrint
+from src.utils.vacancies import VacPrint, VacHH, VacSJ
 
 
 def test_loading_regions_hh():
@@ -288,6 +289,20 @@ def test_sort_method_int(sort_method, name, result, capsys):
 
 
 @pytest.mark.parametrize("service, name, name_vak, area_id, only_with_salary, salary, sort_method, result", [
+    ('hh', 'Василий', 'eeeerrrrrooooorrrrr', 1, True, 50000, 1, (0, 'Вывод данных о вакансиях на экран.')),
+    ('sj', 'Василий', 'eeeerrrrrooooorrrrr', 4, False, 0, 2, (0, 'Вывод данных о вакансиях на экран.')),
+])
+def test_get_job_info_1(service, name, name_vak, area_id, only_with_salary, salary, sort_method, result):
+    """
+    Тестирование функции получения информации о вакансиях при помощи классов VakHH и VakSJ.
+    """
+    size_dict_vak, prof_print = get_job_info(service, name, name_vak, area_id, only_with_salary, salary,
+                                             sort_method)
+    assert size_dict_vak == result[0]
+    assert str(prof_print) == result[1]
+
+
+@pytest.mark.parametrize("service, name, name_vak, area_id, only_with_salary, salary, sort_method, result", [
     ('hh', 'Василий', 'водитель', 1, True, 50000, 1, (2000, 'Вывод данных о вакансиях на экран.')),
     ('hh', 'Василий', 'водитель', 1, False, 0, 2, (2000, 'Вывод данных о вакансиях на экран.')),
     ('sj', 'Василий', 'водитель', 4, True, 50000, 1, (500, 'Вывод данных о вакансиях на экран.')),
@@ -303,19 +318,50 @@ def test_get_job_info(service, name, name_vak, area_id, only_with_salary, salary
     assert str(prof_print) == result[1]
 
 
-@pytest.mark.parametrize("service, count_vak, size_dict_vak, one_each, result", [
-    ('hh', '5', 6, 2, True),
-    ('hh', '30', 6, 2, True),
-    ('sj', '5', 6, 2, True),
-    ('sj', '30', 6, 2, True),
+@pytest.mark.parametrize("service, count_vak, size_dict_vak, one_each, sort_method, result", [
+    ('hh', '5', 6, 2, 1, True),
+    ('hh', '30', 6, 2, 2, True),
+    ('sj', '5', 6, 2, 1, True),
+    ('sj', '30', 6, 2, 2, True),
 ])
-def test_print_vacancies(service, count_vak, size_dict_vak, one_each, result, capsys):
+def test_print_vacancies(service, count_vak, size_dict_vak, one_each, result, sort_method):
     """
     Тестирование функции получения информации о вакансиях при помощи классов VakHH и VakSJ.
     """
     # Создаём экземпляр класса VacPrint
-    prof_print = VacPrint()
+    prof_print = VacPrint(sort_method=sort_method)
 
     all_ok = print_vacancies(service, count_vak, size_dict_vak, prof_print, one_each)
     assert all_ok is True
 
+
+def test_str_repr():
+    """
+    Тестирование методов __str__ и __repr__ классов
+    """
+
+    # Модуль vacancies.py
+    prof_hh = VacHH('ветеринар', 113)
+    assert str(prof_hh) == ('Получение, обработка (включая сортировку) и вывод данных с сервиса hh.ru по '
+                            'API https://api.hh.ru/vacancies')
+    assert repr(prof_hh) == 'VacHH(https://api.hh.ru/vacancies, ветеринар, 113, False, 0, 100, 0)'
+
+    prof_sj = VacSJ('ветеринар', 1)
+    assert str(prof_sj) == ('Получение, обработка (включая сортировку) и вывод данных с сервиса '
+                            'superjob.ru по API https://api.superjob.ru/2.0/vacancies/')
+    assert repr(prof_sj) == 'VacSJ(https://api.superjob.ru/2.0/vacancies/, ветеринар, 1, False, 0, 100, 0'
+
+    prof_print = VacPrint()
+    assert str(prof_print) == 'Вывод данных о вакансиях на экран.'
+    assert repr(prof_print) == '2'
+
+    # Модуль areas.py
+    area_hh = AreasHH()
+    assert str(area_hh) == ('Получение справочника регионов/городов России с сервиса hh.ru по API '
+                            'https://api.hh.ru/areas/113')
+    assert 'AreasHH(https://api.hh.ru/areas/113, 113, россия' in repr(area_hh)
+
+    area_sj = AreasSJ()
+    assert str(area_sj) == ('Получение справочника регионов/городов России с сервиса superjob.ru по API '
+                            'https://api.superjob.ru/2.0/regions/combined/')
+    assert 'AreasSJ(https://api.superjob.ru/2.0/regions/combined/, 1, россия' in repr(area_sj)

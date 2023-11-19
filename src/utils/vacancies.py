@@ -340,7 +340,6 @@ class VacHH(Vacancies, Mixin):
             for page in trange(20, desc='Подождите, пожалуйста. Анализируем страницы', initial=1):
                 # Преобразуем текст ответа запроса в словарь Python.
                 js_obj = json.loads(self.request_to_api(page))
-                # print(js_obj)
 
                 # Получем количество записей
                 self.size_dict += len(js_obj['items'])
@@ -409,8 +408,8 @@ class VacHH(Vacancies, Mixin):
 
     def __repr__(self) -> str:
         return (f"{self.__class__.__name__}({self.__url}, {self.__position},"
-                f"{self.__area}, {self.__only_with_salary}, {self.__salary}, "
-                f"{self.__per_page}, {self.size_dict})")
+                f" {self.__area}, {self.__only_with_salary}, {self.__salary},"
+                f" {self.__per_page}, {self.size_dict})")
 
 
 class VacSJ(Vacancies, Mixin):
@@ -547,9 +546,9 @@ class VacSJ(Vacancies, Mixin):
         return f'Получение, обработка (включая сортировку) и вывод данных с сервиса superjob.ru по API {self.__url}'
 
     def __repr__(self) -> str:
-        return (f"{self.__class__.__name__}({self.__url}, {self.__keyword}, "
-                f"{self.__area}, {self.__only_with_salary}, {self.__salary}, "
-                f"{self.__per_page}, {self.size_dict}")
+        return (f"{self.__class__.__name__}({self.__url}, {self.__keyword},"
+                f" {self.__area}, {self.__only_with_salary}, {self.__salary},"
+                f" {self.__per_page}, {self.size_dict}")
 
 
 class VacPrint(Mixin):
@@ -558,7 +557,7 @@ class VacPrint(Mixin):
     """
 
     def __init__(self, sort_method: int = 2):
-        self.__sort_method = sort_method  # Метод сортировки: 1 - по датам, 2 - по размеру зарплаты
+        self.__sort_method = sort_method  # Метод сортировки: 1 - по размеру зарплаты, 2 - по датам
 
     def vacancies_print(self, count_vak, resource: str, one_each: int = 1) -> None:
         """

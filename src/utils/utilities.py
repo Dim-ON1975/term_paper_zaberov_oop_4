@@ -347,7 +347,7 @@ def sort_method_input():
 
 def sort_method_int(sort_method: str, name: str) -> tuple:
     """
-    Определение метода сортировки: 1 - по датам, 2 - по размеру зарплаты.
+    Определение метода сортировки: 1 - по размеру зарплаты, 2 - по датам.
     :param sort_method: Выбранный пользователем метод сортировки, str.
     :param name: Имя пользователя, str.
     :return: Код (номер) метода сортировки, tuple (int, bool).
@@ -370,7 +370,7 @@ def sort_method_int(sort_method: str, name: str) -> tuple:
 
 def choose_sort_method(only_with_salary: bool, name: str) -> int:
     """
-    Выбор метода сортировки: 1 - по датам, 2 - по размеру зарплаты.
+    Выбор метода сортировки: 1 - по размеру зарплаты, 2 - по датам.
     :param only_with_salary: Флаг с зарплатой (True) или все (False), bool.
     :param name: Имя пользователя, str.
     :return: Целое число — выбранный метод, int.
