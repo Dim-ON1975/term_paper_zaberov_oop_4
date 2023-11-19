@@ -213,7 +213,7 @@ class Mixin:
         return content
 
     @staticmethod
-    def delete_files_in_folder(folder_path):
+    def delete_files_in_folder(folder_path) -> None:
         """
         Удаление файлов из папки.
         :param folder_path: Путь к папке, str.

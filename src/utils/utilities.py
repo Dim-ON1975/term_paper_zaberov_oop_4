@@ -4,7 +4,8 @@ from src.utils.constants import PATH_VAK_DIR_HH, PATH_ARE_HH, PATH_VAK_DIR_SJ, P
 from src.utils.vacancies import VacHH, VacSJ, VacPrint
 
 
-def loading_regions_hh(url: str = URL_AREAS_HH, path_vak_dir_hh: str = PATH_VAK_DIR_HH, path_are_hh: str = PATH_ARE_HH):
+def loading_regions_hh(url: str = URL_AREAS_HH, path_vak_dir_hh: str = PATH_VAK_DIR_HH,
+                       path_are_hh: str = PATH_ARE_HH) -> None:
     """
     Загружает перечни регионов и городов с сервиса hh.ru.
     :param url: URL регионов, str.
@@ -33,7 +34,7 @@ def loading_regions_sj(url: str = URL_AREAS_SJ, path_vak_dir_sj: str = PATH_VAK_
     area_sj.request_to_api()
 
 
-def program_info():
+def program_info() -> str:
     """
     Выводит информацию о программе, знакомимся с пользователем.
     :return: Имя, введённое пользователем или пустую строку, если нажата клавиша [Enter], str.
@@ -71,7 +72,7 @@ def exit_program(name) -> None:
     raise SystemExit('Работа программы завершена.\n')
 
 
-def service_menu_selection():
+def service_menu_selection() -> str:
     """
     Ввод пункта меню для выбора сервиса.
     :return: Возвращает выбор пользователем пункта меню, str.
@@ -333,7 +334,7 @@ def all_ok_salary_input(salary: str) -> tuple:
         return 0, False
 
 
-def sort_method_input():
+def sort_method_input() -> str:
     """
     Функция выбора пункта меню для отображения отсортированных вакансий.
     :return: Ввод пользователя, str.
@@ -443,7 +444,7 @@ def get_job_info(service: str, name: str, name_vak: str, area_id: int, only_with
         raise ValueError('Некорректные данные о сервисе.')
 
 
-def reselect_position():
+def reselect_position() -> str:
     """
     Выбор команды меню (повторный ввод должности или выход из программы).
     :return: Данные, введённые пользователем, str.
