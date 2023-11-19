@@ -57,7 +57,7 @@ class Mixin:
         return content
 
     @staticmethod
-    def delete_files_in_folder(folder_path):
+    def delete_files_in_folder(folder_path) -> None:
         """
         Удаление файлов из папки.
         :param folder_path: Путь к папке, str.
@@ -100,7 +100,7 @@ class AreasHH(Areas, Mixin):
         except Exception as e:
             raise Exception(f'Ошибка при получении данных с {self.__url}. {e}')
 
-    def extract_area_id(self):
+    def extract_area_id(self) -> int:
         """Получение id региона (города)"""
         areas = self.load_json(self.__path_are_hh)
         # Ищем id указанного региона/населённого пункта.
@@ -151,7 +151,7 @@ class AreasSJ(Areas, Mixin):
         except Exception as e:
             raise Exception(f'Ошибка при получении данных с {self.__url}. {e}')
 
-    def extract_area_id(self):
+    def extract_area_id(self) -> int:
         """Получение id региона (города)"""
         areas = self.load_json(self.__path_are_sj)
 
