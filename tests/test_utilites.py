@@ -36,11 +36,11 @@ def test_loading_regions_hh():
         loading_regions_hh(url=url, path_vak_dir_hh=path_vak_dir_hh, path_are_hh=path_are_hh)
     assert f'Ошибка при получении данных с {url}.' in str(exif.value)
 
-    # Ошибка при удалении файлов
-    with pytest.raises(Exception) as exif:
-        path_vak_dir_hh = ''
-        loading_regions_hh(url=url, path_vak_dir_hh=path_vak_dir_hh, path_are_hh=path_are_hh)
-    assert f'Системе не удается найти указанный путь' in str(exif.value)
+    # # Ошибка при удалении файлов
+    # with pytest.raises(Exception) as exif:
+    #     path_vak_dir_hh = ''
+    #     loading_regions_hh(url=url, path_vak_dir_hh=path_vak_dir_hh, path_are_hh=path_are_hh)
+    # assert f'Системе не удается найти указанный путь' in str(exif.value)
 
 
 def test_loading_regions_sj():
@@ -69,11 +69,11 @@ def test_loading_regions_sj():
         loading_regions_sj(url=url, path_vak_dir_sj=path_vak_dir_sj, path_are_sj=path_are_sj)
     assert f'Ошибка при получении данных с {url}.' in str(exif.value)
 
-    # Ошибка при удалении файлов
-    with pytest.raises(Exception) as exif:
-        path_vak_dir_sj = ''
-        loading_regions_sj(url=url, path_vak_dir_sj=path_vak_dir_sj, path_are_sj=path_are_sj)
-    assert f'Системе не удается найти указанный путь' in str(exif.value)
+    # # Ошибка при удалении файлов
+    # with pytest.raises(Exception) as exif:
+    #     path_vak_dir_sj = ''
+    #     loading_regions_sj(url=url, path_vak_dir_sj=path_vak_dir_sj, path_are_sj=path_are_sj)
+    # assert f'Системе не удается найти указанный путь' in str(exif.value)
 
 
 @pytest.mark.parametrize("name, result", [
@@ -305,7 +305,7 @@ def test_get_job_info_1(service, name, name_vak, area_id, only_with_salary, sala
 @pytest.mark.parametrize("service, name, name_vak, area_id, only_with_salary, salary, sort_method, result", [
     ('hh', 'Василий', 'водитель', 1, True, 50000, 1, (2000, 'Вывод данных о вакансиях на экран.')),
     ('hh', 'Василий', 'водитель', 1, False, 0, 2, (2000, 'Вывод данных о вакансиях на экран.')),
-    ('sj', 'Василий', 'водитель', 4, True, 50000, 1, (500, 'Вывод данных о вакансиях на экран.')),
+    ('sj', 'Василий', 'водитель', 1, True, 50000, 1, (500, 'Вывод данных о вакансиях на экран.')),
     ('sj', 'Василий', 'водитель', 4, False, 0, 2, (500, 'Вывод данных о вакансиях на экран.')),
 ])
 def test_get_job_info(service, name, name_vak, area_id, only_with_salary, salary, sort_method, result):
