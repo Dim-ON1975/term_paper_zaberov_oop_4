@@ -3,8 +3,8 @@
 from typing import Callable
 import pytest
 
-from src.utils.utilities import num_area_word, name_vak_word, salary_vak_input, error_input, \
-    salary_input
+from src.utils.utilities import num_area_input, name_vak_word, salary_vak_input, error_input, \
+    salary_input, area_vak_input, sort_method_input
 
 
 def _create_patched_input(str_list: list[str]) -> Callable:
@@ -33,22 +33,36 @@ def _mock_input(monkeypatch, inputs: list[str]) -> None:
     :param inputs: Словарь входных данных, str.
     """
     patched_input = _create_patched_input(inputs)
-    # Временное изменение объекта, на которое указыает имя, на другой.
+    # Временное изменение объекта, на который указыает имя, на другой.
     monkeypatch.setattr("builtins.input", patched_input)
 
 
 # Объявляем использование фикстуры.
+
+@pytest.mark.usefixtures("_mock_input")
+@pytest.mark.parametrize(
+    "inputs",
+    (["ростовская область", "ростов-на-дону"], ["санкт-петербург", "error"]),
+)
+def test_area_vak_input(inputs):
+    """
+    Тестирование функции num_area_word.
+    """
+    for name in inputs:
+        assert area_vak_input() == name
+
+
 @pytest.mark.usefixtures("_mock_input")
 @pytest.mark.parametrize(
     "inputs",
     (["1", "2"], ["0", "error"]),
 )
-def test_num_area_word(inputs):
+def test_num_area_input(inputs):
     """
     Тестирование функции num_area_word.
     """
     for name in inputs:
-        assert num_area_word() == name
+        assert num_area_input() == name
 
 
 @pytest.mark.usefixtures("_mock_input")
@@ -106,3 +120,16 @@ def test_salary_input(inputs):
     """
     for name in inputs:
         assert salary_input() == name
+
+
+@pytest.mark.usefixtures("_mock_input")
+@pytest.mark.parametrize(
+    "inputs",
+    (["1", "2"], ["0", "error"]),
+)
+def test_sort_method_input(inputs):
+    """
+    Тестирование функции num_area_word.
+    """
+    for name in inputs:
+        assert sort_method_input() == name

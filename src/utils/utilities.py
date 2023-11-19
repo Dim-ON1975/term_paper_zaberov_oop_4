@@ -97,41 +97,15 @@ def error_input(value: str) -> str:
     return input(value)
 
 
-def choosing_region(service: str, name: str, area_id_country: int) -> int:
-    """
-    Выбор региона для отображения вакансий.
-    :param service: Строка, указывающая на выбор сервиса: "hh" - HeadHunter, "sj" - SuperJob, str.
-    :param name: Имя пользователя, str.
-    :param area_id_country: id страны по умолчанию (Россия), int.
-    :return: Выводит id региона для поиска вакансий, int.
-    """
-    all_ok = False
-    while not all_ok:
-        # Регион, который указывает пользователь.
-        area_vak = input(
-            f'\nДля поиска вакансий введите, пожалуйста, название одного региона или города России\n'
-            f'без указания кратких обозначений "г.", "с.", "х." и т.д., например:\n'
-            f'Москва, Санкт-Петербург, Ростовская область, Ростов-на-Дону.\n'
-            f'Введите название региона/населённого пункта: ').strip().lower()
-
-        # Ищем id на указанном сервисе
-        area_id = search_area_id(area_vak, service, name)
-
-        # Если не нашли, указанный пользователем, регион/населённый пункт
-        if area_id == area_id_country:
-            # Выбор разделов меню
-            all_ok_area = False
-            while not all_ok_area:
-                # Вывод меню
-                num_area = num_area_word()
-                # Работаем с пунктами меню
-                all_ok_area, all_ok = selection_menu_sections_id(num_area, name)
-        else:
-            all_ok = True
-    return area_id
+def area_vak_input() -> str:
+    return input(
+        f'\nДля поиска вакансий введите, пожалуйста, название одного региона или города России\n'
+        f'без указания кратких обозначений "г.", "с.", "х." и т.д., например:\n'
+        f'Москва, Санкт-Петербург, Ростовская область, Ростов-на-Дону.\n'
+        f'Введите название региона/населённого пункта: ').strip().lower()
 
 
-def num_area_word() -> str:
+def num_area_input() -> str:
     """
     Меню выбора при поиске id
     :return: Результат ввода пользователем, str
@@ -143,6 +117,35 @@ def num_area_word() -> str:
                  f'   ✅ Показать вакансии в России............ - 2\n'
                  f'   ❌ Заверишь работу программы............. - 0\n\n'
                  f'Введите команду: ')
+
+
+def choosing_region(service: str, name: str, area_id_country: int) -> int:
+    """
+    Выбор региона для отображения вакансий.
+    :param service: Строка, указывающая на выбор сервиса: "hh" - HeadHunter, "sj" - SuperJob, str.
+    :param name: Имя пользователя, str.
+    :param area_id_country: id страны по умолчанию (Россия), int.
+    :return: Выводит id региона для поиска вакансий, int.
+    """
+    all_ok = False
+    while not all_ok:
+        # Вводим регион/населённый пункт
+        area_vak = area_vak_input()
+        # Ищем id на указанном сервисе
+        area_id = search_area_id(area_vak, service, name)
+
+        # Если не нашли, указанный пользователем, регион/населённый пункт
+        if area_id == area_id_country:
+            # Выбор разделов меню
+            all_ok_area = False
+            while not all_ok_area:
+                # Выбор пункта меню
+                num_area = num_area_input()
+                # Определяем поведение в соответствии с выбранным пунктом меню
+                all_ok_area, all_ok = selection_menu_sections_id(num_area, name)
+        else:
+            all_ok = True
+    return area_id
 
 
 def search_area_id(area_vak: str, service: str, name: str) -> int:
@@ -228,7 +231,7 @@ def show_only_with_salary(name: str) -> bool:
 
 def salary_vak_input() -> str:
     """
-    Функция выбора пункта меню для выбора отображения вакансий всех или только с зарплатой.
+    Функция выбора пункта меню для отображения вакансий всех или только с зарплатой.
     :return: Ввод пользователя, str.
     """
     return input('\nВыберите одну из команд:\n'
@@ -307,6 +310,41 @@ def all_ok_salary_input(salary: str) -> tuple:
         return 0, False
 
 
+def sort_method_input():
+    """
+    Функция выбора пункта меню для отображения отсортированных вакансий.
+    :return: Ввод пользователя, str.
+    """
+    return input('\nКак нам отсортировать вакансии?\n'
+                 '   ✅ По заработной плате (по убыванию)  - 1\n'
+                 '   ✅ По дате публикации (по убыванию).. - 2\n'
+                 '   ❌ Завершить работу программы........ - 0\n\n'
+                 'Введите команду: ')
+
+
+def sort_method_int(sort_method: str, name: str) -> tuple:
+    """
+    Определение метода сортировки: 1 - по датам, 2 - по размеру зарплаты.
+    :param sort_method: Выбранный пользователем метод сортировки, str.
+    :param name: Имя пользователя, str.
+    :return: Код (номер) метода сортировки, tuple (int, bool).
+    """
+    try:
+        match int(sort_method):
+            # Метод сортировки по зарплате (от большей к меньшей), выход из цикла.
+            case 1:
+                return 1, True
+            # Метод сортировки датам (от ранних к поздним), выход из цикла.
+            case 2:
+                return 2, True
+            # Завершение работы программы.
+            case 0:
+                exit_program(name)
+    except ValueError:
+        print('Введена некорректная команда.\n')
+        return 1, False
+
+
 def choose_sort_method(only_with_salary: bool, name: str) -> int:
     """
     Выбор метода сортировки: 1 - по датам, 2 - по размеру зарплаты.
@@ -316,30 +354,70 @@ def choose_sort_method(only_with_salary: bool, name: str) -> int:
     """
     sort_method = 1
     if only_with_salary:
-        sort_method = input('\nКак нам отсортировать вакансии?\n'
-                            '   ✅ По заработной плате (по убыванию)  - 1\n'
-                            '   ✅ По дате публикации (по убыванию).. - 2\n'
-                            '   ❌ Завершить работу программы........ - 0\n\n'
-                            'Введите команду: ')
         all_ok = False
         while not all_ok:
+            # Ввод команды пользователем
+            sort_method = sort_method_input()
             # Обработка команд
-            try:
-                match int(sort_method):
-                    # Метод сортировки по зарплате (от большей к меньшей), выход из цикла.
-                    case 1:
-                        sort_method = 1
-                        all_ok = True
-                    # Метод сортировки датам (от ранних к поздним), выход из цикла.
-                    case 2:
-                        sort_method = 2
-                        all_ok = True
-                    # Завершение работы программы.
-                    case 0:
-                        exit_program(name)
-            except ValueError:
-                sort_method = input(f'\n❗{name}, Вы ввели некорректную команду. Попробуйте ещё раз: ')
+            sort_method, all_ok = sort_method_int(sort_method, name)
     return sort_method
+
+
+def get_job_info(service: str, name: str, name_vak: str, area_id: int, only_with_salary: bool, salary: int,
+                 sort_method: int) -> tuple:
+    """
+    Получение информации о вакансиях при помощи классов VakHH и VakSJ.
+    :param service: Строка, указывающая на выбор сервиса: "hh" - HeadHunter, "sj" - SuperJob, str.
+    :param name: Имя пользователя, str.
+    :param name_vak: Ключевое слово для поиска вакансии, str.
+    :param area_id: ID региона для поиска вакансий, int.
+    :param only_with_salary: Флаг с зарплатой (True) или все (False) вакансии, bool.
+    :param salary: Размер желаемой заработной платы, int.
+    :param sort_method: Целое число — выбранный метод сортировки (по датам или размеру зарплаты), int.
+    :return: Сохраняет данные в json-файлах, возвращает кол-во вакансий и экз. класса VacPrint, tuple(int, object).
+    """
+    # Инициализация экземпляров классов зависит от выбранного сервиса
+    try:
+        # Если выбран HeadHunter
+        if service == 'hh':
+            # Создаём экземпляр класса VacHH - вакансии с hh.ru.
+            if only_with_salary or salary != 0:
+                prof_hh = VacHH(position=name_vak, area=area_id, only_with_salary=only_with_salary, salary=salary)
+                prof_print = VacPrint(sort_method=sort_method)
+            else:
+                prof_hh = VacHH(position=name_vak, area=area_id)
+                prof_print = VacPrint()
+
+            # Получаем все вакансии в соответствии с запросом пользователя,
+            # сохраняя их в json-файлы.
+            prof_hh.vacancies_all()
+
+            # Размер словаря с вакансиями.
+            return prof_hh.size_dict, prof_print
+
+        # Если выбран SuperJob
+        elif service == 'sj':
+            # Создаём экземпляр класса VacSJ - вакансии с superjob.ru.
+            if only_with_salary or salary != 0:
+                prof_sj = VacSJ(position=name_vak, area=area_id, only_with_salary=only_with_salary, salary=salary)
+                prof_print = VacPrint(sort_method=sort_method)
+            else:
+                prof_sj = VacSJ(position=name_vak, area=area_id)
+                prof_print = VacPrint()
+
+            # Получаем все вакансии в соответствии с запросом пользователя,
+            # сохраняя их в json-файлы.
+            prof_sj.vacancies_all()
+
+            # Размер словаря с вакансиями.
+            return prof_sj.size_dict, prof_print
+
+        # Если указано что-то другое
+        else:
+            print('Программа не ищет данные на указанном сервисе.')
+            exit_program(name)
+    except ValueError:
+        raise ValueError('Некорректные данные о сервисе.')
 
 
 def displaying_jobs_screen(service: str, name: str, name_vak: str, area_id: int, only_with_salary: bool, salary: int,
@@ -357,48 +435,9 @@ def displaying_jobs_screen(service: str, name: str, name_vak: str, area_id: int,
     """
     all_ok = False
     while not all_ok:
-        # Инициализация экземпляров классов зависит от выбранного сервиса
-        try:
-            # Если выбран HeadHunter
-            if service == 'hh':
-                # Создаём экземпляр класса VacHH - вакансии с hh.ru.
-                if only_with_salary or salary != 0:
-                    prof_hh = VacHH(position=name_vak, area=area_id, only_with_salary=only_with_salary, salary=salary)
-                    prof_print = VacPrint(sort_method=sort_method)
-                else:
-                    prof_hh = VacHH(position=name_vak, area=area_id)
-                    prof_print = VacPrint()
-
-                # Получаем все вакансии в соответствии с запросом пользователя,
-                # сохраняя их в json-файлы.
-                prof_hh.vacancies_all()
-
-                # Размер словаря с вакансиями.
-                size_dict_vak = prof_hh.size_dict
-
-            # Если выбран SuperJob
-            elif service == 'sj':
-                # Создаём экземпляр класса VacHH - вакансии с hh.ru.
-                if only_with_salary or salary != 0:
-                    prof_sj = VacSJ(position=name_vak, area=area_id, only_with_salary=only_with_salary, salary=salary)
-                    prof_print = VacPrint(sort_method=sort_method)
-                else:
-                    prof_sj = VacSJ(position=name_vak, area=area_id)
-                    prof_print = VacPrint()
-
-                # Получаем все вакансии в соответствии с запросом пользователя,
-                # сохраняя их в json-файлы.
-                prof_sj.vacancies_all()
-
-                # Размер словаря с вакансиями.
-                size_dict_vak = prof_sj.size_dict
-
-            # Если указано что-то другое
-            else:
-                print('Программа не ищет данные на указанном сервисе.')
-                exit_program(name)
-        except ValueError:
-            raise ValueError('Некорректные данные о сервисе.')
+        # Найденное количество вакансий
+        size_dict_vak, prof_print = get_job_info(service, name, name_vak, area_id, only_with_salary, salary,
+                                                 sort_method)
 
         if size_dict_vak == 0:
             commands_prg = input('\nВыберите одну из команд:\n'

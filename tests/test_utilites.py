@@ -4,7 +4,7 @@ import os
 import pytest
 
 from src.utils.utilities import loading_regions_hh, loading_regions_sj, user_name, exit_program, service_selection, \
-    search_area_id, selection_menu_sections_id, num_area_word, all_ok_salary, all_ok_salary_input
+    search_area_id, selection_menu_sections_id, all_ok_salary, all_ok_salary_input, sort_method_int, get_job_info
 
 
 def test_loading_regions_hh():
@@ -160,7 +160,7 @@ def test_service_selection_2(capsys, monkeypatch):
     ('sj', 'Василий', 'Санкт-Петербург', 14),
     ('sj', 'Василий', 'error', 1),
 ])
-def test_choosing_region(service, name, area_vak, result, capsys, monkeypatch):
+def test_search_area_id(service, name, area_vak, result, capsys, monkeypatch):
     """
     Тестирование функции поиска id региона/населённого пункта
     """
@@ -253,3 +253,51 @@ def test_all_ok_salary_input(salary, result, capsys):
         assert err == ''
         assert salary == result[0]
         assert all_ok == result[1]
+
+
+@pytest.mark.parametrize("sort_method, name, result", [
+    ('1', 'Василий', (1, True)),
+    ('2', 'Василий', (2, True)),
+    ('0', 'Василий', 'Работа программы завершена.'),
+    ('error', 'Василий', (1, False))
+])
+def test_sort_method_int(sort_method, name, result, capsys):
+    """
+    Тестирование функции выбора пунктов для отображений вакансий только с зарплатой или всех имеющихся.
+    """
+    if sort_method == '1' or sort_method == '2':
+        sort_method, all_ok = sort_method_int(sort_method, name)
+        assert sort_method == result[0]
+        assert all_ok == result[1]
+    elif sort_method == '0':
+        with pytest.raises(SystemExit) as exif:
+            sort_method_int(sort_method, name)
+            out, err = capsys.readouterr()
+            assert out == f'\nДо свидания, {name}! 👋'
+            assert err == ''
+        assert result in str(exif.value)
+    else:
+        sort_method, all_ok = sort_method_int(sort_method, name)
+        out, err = capsys.readouterr()
+        assert out == 'Введена некорректная команда.\n\n'
+        assert err == ''
+        assert sort_method == 1
+        assert all_ok is False
+
+
+@pytest.mark.parametrize("service, name, name_vak, area_id, only_with_salary, salary, sort_method, result", [
+    ('hh', 'Василий', 'водитель', 1, True, 50000, 1, (2000, 'Вывод данных о вакансиях на экран.')),
+    ('hh', 'Василий', 'водитель', 1, False, 0, 2, (2000, 'Вывод данных о вакансиях на экран.')),
+    ('sj', 'Василий', 'водитель', 4, True, 50000, 1, (500, 'Вывод данных о вакансиях на экран.')),
+    ('sj', 'Василий', 'водитель', 4, False, 0, 2, (500, 'Вывод данных о вакансиях на экран.')),
+])
+def test_get_job_info(service, name, name_vak, area_id, only_with_salary, salary, sort_method, result, capsys):
+    """
+    Тестирование функции получения информации о вакансиях при помощи классов VakHH и VakSJ.
+    """
+    size_dict_vak, prof_print = get_job_info(service, name, name_vak, area_id, only_with_salary, salary,
+                                             sort_method)
+    assert 0 < size_dict_vak <= result[0]
+    assert str(prof_print) == result[1]
+
+
